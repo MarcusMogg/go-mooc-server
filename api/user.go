@@ -14,7 +14,7 @@ import (
 func Register(c *gin.Context) {
 	var r request.RegisterData
 	if err := c.BindJSON(&r); err == nil {
-		user := &entity.MUser{UserName: r.UserName, NickName: r.NickName, Password: r.Password}
+		user := &entity.MUser{UserName: r.UserName, Email: r.Email, Password: r.Password}
 
 		if err = service.Register(user); err == nil {
 			response.OkWithMessage("注册成功", c)

@@ -3,7 +3,7 @@ package request
 // RegisterData 注册时传入参数
 type RegisterData struct {
 	UserName string `form:"username" json:"username" binding:"required"`
-	NickName string `form:"nickname" json:"nickname" binding:"required"`
+	Email    string `form:"email" json:"email" binding:"required"`
 	Password string `form:"password" json:"password" binding:"required"`
 }
 
