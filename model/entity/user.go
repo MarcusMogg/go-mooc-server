@@ -8,5 +8,18 @@ type MUser struct {
 	UserName string `gorm:"not null;unique"`
 	Email    string
 	NickName string
-	Password string
+	Password string `gorm:"not null"`
+	Role     Role
 }
+
+// Role 用户身份
+type Role int
+
+const (
+	// Student 学生
+	Student Role = iota
+	// Teacher 老师
+	Teacher
+	// Admin 管理员
+	Admin
+)
