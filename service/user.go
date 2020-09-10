@@ -23,6 +23,13 @@ func Register(u *entity.MUser) error {
 
 //Login 用户登录
 func Login(u *entity.MUser) bool {
-	result := global.GDB.Where("user_name = ? AND password = ?", u.UserName, utils.AesEncrypt(u.Password)).First(u)
+	result := global.GDB.Where("user_name = ? AND password = ?", u.UserName, utils.AesEncrypt(u.Password)).Find(u)
 	return !errors.Is(result.Error, gorm.ErrRecordNotFound)
+}
+
+// GetUserInfoByID 获取用户信息
+func GetUserInfoByID(id uint) *entity.MUser {
+	var u entity.MUser
+	global.GDB.First(&u, id)
+	return &u
 }

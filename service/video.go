@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"os/exec"
 	"server/global"
 	"server/model/entity"
@@ -32,11 +33,11 @@ func upload() {
 	if err := cmd.Run(); err != nil {
 		return
 	}
-	param = []string{"-i", video.Path + "/" + video.VideoName + "", "-c", "copy", "-map", "0", "-f", "segment", "-segment_list",
+	param = []string{"-i", video.Path + "/" + video.VideoName + ".ts", "-c", "copy", "-map", "0", "-f", "segment", "-segment_list",
 		video.Path + "/" + video.VideoName + ".m3u8", "-segment_time", "5", video.Path + "/" + video.VideoName + "-%03d.ts"}
 	cmd = exec.Command("ffmpeg", param...)
-	if err := cmd.Run(); err != nil {
-		return
+	if out, err := cmd.CombinedOutput(); err != nil {
+		fmt.Println(string(out), err.Error())
 	}
 	global.GDB.Model(&video).Update("format", "m3u8")
 }
