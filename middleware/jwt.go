@@ -3,7 +3,9 @@ package middleware
 import (
 	"errors"
 	"server/global"
+	"server/model/entity"
 	"server/model/response"
+	"server/service"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -24,7 +26,9 @@ type JWT struct {
 // JWTClaim 存储claim,即用户信息
 type JWTClaim struct {
 	jwt.StandardClaims
+	UserID   uint
 	UserName string
+	Role     entity.Role
 }
 
 // NewJWT 使用默认key创建jwt
@@ -76,7 +80,8 @@ func JWTAuth() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		c.Set("cliam", claim)
+		u := service.GetUserInfoByID(claim.UserID)
+		c.Set("user", u)
 		c.Next()
 	}
 }

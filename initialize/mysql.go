@@ -12,6 +12,7 @@ import (
 func Mysql() {
 	connect := global.GCONFIG.Mysql
 	dsn := connect.Username + ":" + connect.Password + "@(" + connect.Path + ")/" + connect.Dbname + "?" + connect.Parm
+	fmt.Println(dsn)
 	if db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{}); err != nil {
 		panic(fmt.Errorf("MySQL启动异常: %s", err))
 	} else {
