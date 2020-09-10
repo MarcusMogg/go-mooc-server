@@ -7,6 +7,9 @@ import (
 	"gorm.io/gorm"
 )
 
+// MaxVideoNum 最大上传视频
+var MaxVideoNum = 10
+
 var (
 	// GCONFIG 全局配置内容
 	GCONFIG config.Config
@@ -14,6 +17,8 @@ var (
 	GVP *viper.Viper
 	// GDB 数据库连接
 	GDB *gorm.DB
+	// UPLOADQUEUE 上传队列
+	UPLOADQUEUE chan string
 )
 
 // TimeTemplateDay 时间转换模板，到天

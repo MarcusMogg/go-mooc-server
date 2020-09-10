@@ -3,7 +3,10 @@ package api
 import (
 	"fmt"
 	"os/exec"
+	"server/global"
+	"server/model/entity"
 	"server/model/response"
+	"server/service"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -11,9 +14,10 @@ import (
 	"os"
 )
 
+// Upload 上传文件
 func Upload(c *gin.Context) {
+	uploader := c.PostForm("uploader")
 	course := c.PostForm("course")
-
 	file, _ := c.FormFile("file")
 	tmp := strings.Split(file.Filename, ".")
 	filename, format := tmp[0], tmp[1]
@@ -25,8 +29,6 @@ func Upload(c *gin.Context) {
 	dstLen := len(dst) - 1
 	if err := c.SaveUploadedFile(file, strings.Join(dst, "")); err != nil {
 		response.FailWithMessage(fmt.Sprintf("%v", err), c)
-	} else {
-		response.OkWithMessage("upload success", c)
 	}
 
 	if format != "mp4" {
@@ -37,27 +39,15 @@ func Upload(c *gin.Context) {
 		cmd := exec.Command("ffmpeg", param...)
 		if err := cmd.Run(); err != nil {
 			response.FailWithMessage(fmt.Sprintf("%v", err), c)
-		} else {
-			response.OkWithMessage("mp4 transform success", c)
 		}
+	} else {
+		response.OkWithMessage("upload success", c)
 	}
-
-	src := make([]string, dstLen+1)
-	copy(src, dst)
-	dst[dstLen] = "ts"
-	param := []string{"-y", "-i", strings.Join(src, ""), "-vcodec", "copy", "-acodec", "copy", "-vbsf", "h264_mp4toannexb", strings.Join(dst, "")}
-	cmd := exec.Command("ffmpeg", param...)
-	if err := cmd.Run(); err != nil {
-		response.OkWithMessage(fmt.Sprintf("%v", err), c)
+	video := &entity.Video{VideoName: filename, Course: course, Uploader: uploader, Format: "mp4", Path: folder}
+	if err := service.SaveVideo(video); err != nil {
+		response.FailWithMessage(fmt.Sprintf("%v", err), c)
 	}
-
-	src[dstLen] = "ts"
-	dst[dstLen] = "m3u8"
-	param = []string{"-i", strings.Join(src, ""), "-c", "copy", "-map", "0", "-f", "segment", "-segment_list",
-		strings.Join(dst, ""), "-segment_time", "5", strings.Join(dst[:dstLen-1], "") + "-%03d.ts"}
-	cmd = exec.Command("ffmpeg", param...)
-	if err := cmd.Run(); err != nil {
-		response.OkWithMessage(fmt.Sprintf("%v", err), c)
-	}
-
+	var id int
+	global.GDB.Table("videos").Select("id").Where("video_name = ?", video.VideoName).Scan(&id)
+	global.UPLOADQUEUE <- fmt.Sprintf("%d", id)
 }
