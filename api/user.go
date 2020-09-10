@@ -2,10 +2,14 @@ package api
 
 import (
 	"fmt"
+	"server/middleware"
 	"server/model/entity"
 	"server/model/request"
 	"server/model/response"
 	"server/service"
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
 
 	"github.com/gin-gonic/gin"
 )
@@ -34,7 +38,7 @@ func Login(c *gin.Context) {
 		user := &entity.MUser{UserName: r.UserName, Password: r.Password}
 
 		if service.Login(user) {
-			response.OkDetailed(user, "登录成功", c)
+			tokenNext(c, user)
 		} else {
 			response.FailWithMessage("账号或者密码错误", c)
 		}
@@ -42,4 +46,22 @@ func Login(c *gin.Context) {
 	} else {
 		response.FailValidate(c)
 	}
+}
+
+func tokenNext(c *gin.Context, u *entity.MUser) {
+	j := middleware.NewJWT()
+	claim := middleware.JWTClaim{
+		UserName: u.UserName,
+		StandardClaims: jwt.StandardClaims{
+			NotBefore: time.Now().Unix() - 100,
+			ExpiresAt: time.Now().Unix() + 60*60*24*7,
+			Issuer:    "715worker",
+		},
+	}
+	token, err := j.CreateToken(claim)
+	if err != nil {
+		response.FailWithMessage("token创建失败", c)
+		return
+	}
+	response.OkWithData(token, c)
 }
