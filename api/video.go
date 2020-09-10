@@ -1,11 +1,12 @@
 package api
 
 import (
-	"server/model/entity"
-	"server/global"
 	"fmt"
 	"os/exec"
+	"server/global"
+	"server/model/entity"
 	"server/model/response"
+	"server/service"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -15,6 +16,7 @@ import (
 
 // Upload 上传文件
 func Upload(c *gin.Context) {
+	uploader := c.PostForm("uploader")
 	course := c.PostForm("course")
 	file, _ := c.FormFile("file")
 	tmp := strings.Split(file.Filename, ".")
@@ -40,8 +42,12 @@ func Upload(c *gin.Context) {
 		}
 	} else {
 		response.OkWithMessage("upload success", c)
-		video := &entity.Video{videoName: filename, course: course, status: "mp4", path: strings.Join(dst, "")}
-		global.UPLOADQUEUE <- strings.Join(dst, "")
 	}
-
+	video := &entity.Video{VideoName: filename, Course: course, Uploader: uploader, Format: "mp4", Path: folder}
+	if err := service.SaveVideo(video); err != nil {
+		response.FailWithMessage(fmt.Sprintf("%v", err), c)
+	}
+	var id int
+	global.GDB.Table("videos").Select("id").Where("video_name = ?", video.VideoName).Scan(&id)
+	global.UPLOADQUEUE <- fmt.Sprintf("%d", id)
 }
