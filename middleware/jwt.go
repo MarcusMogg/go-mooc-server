@@ -3,8 +3,10 @@ package middleware
 import (
 	"errors"
 	"server/global"
+	"server/model/response"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -22,7 +24,7 @@ type JWT struct {
 // JWTClaim 存储claim,即用户信息
 type JWTClaim struct {
 	jwt.StandardClaims
-	NickName string
+	UserName string
 }
 
 // NewJWT 使用默认key创建jwt
@@ -57,4 +59,24 @@ func (j *JWT) ParseToken(tokenString string) (*JWTClaim, error) {
 		}
 	}
 	return nil, ErrTokenInvalid
+}
+
+// JWTAuth 身份验证中间件
+func JWTAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token := c.Request.Header.Get("Authorization")
+		jwt := NewJWT()
+		claim, err := jwt.ParseToken(token)
+		if err != nil {
+			if err == ErrTokenExpired {
+				response.FailWithMessage("授权已过期", c)
+			} else {
+				response.Fail(c)
+			}
+			c.Abort()
+			return
+		}
+		c.Set("cliam", claim)
+		c.Next()
+	}
 }
