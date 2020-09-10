@@ -40,7 +40,7 @@ func Upload(c *gin.Context) {
 		}
 	} else {
 		response.OkWithMessage("upload success", c)
-		video := &entity.Video{videoName: filename, course: course, }
+		video := &entity.Video{videoName: filename, course: course, status: "mp4", path: strings.Join(dst, "")}
 		global.UPLOADQUEUE <- strings.Join(dst, "")
 	}
 
