@@ -21,6 +21,7 @@ type CourseVideo struct {
 
 // CourseVideoResult 关联查询结果
 type CourseVideoResult struct {
-	CourseID uint
-	Seq 	 int
+	CourseID	uint
+	Seq 	 	int
+	VideoID		uint
 }

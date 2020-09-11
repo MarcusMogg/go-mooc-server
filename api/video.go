@@ -28,11 +28,12 @@ func Upload(c *gin.Context) {
 	}
 	tmp := strings.Split(file.Filename, ".")
 	filename, format := tmp[0], tmp[1]
-	folder := strings.Join([]string{"video/", fmt.Sprintf("%v", courseID), "/", fmt.Sprintf("%v", seq), "/", filename}, "")
+	folder := strings.Join([]string{"video/", fmt.Sprintf("%v", courseID), "/", fmt.Sprintf("%v", seq)}, "")
 
 	video := &entity.Video{VideoName: filename, Seq: seq, Format: format, Path: folder, Name: name}
 
-	if err := service.SaveVideo(video, uint(courseID)); err != nil {
+	err = service.SaveVideo(video, uint(courseID))
+	if err != nil {
 		response.FailWithMessage(fmt.Sprintf("%v", err), c)
 	}
 
@@ -42,7 +43,9 @@ func Upload(c *gin.Context) {
 		response.FailWithMessage(fmt.Sprintf("%v", err), c)
 	} else {
 		response.OkWithMessage("upload success", c)
-		global.UPLOADQUEUE <- fmt.Sprintf("%v", video.ID)
+		var QResult entity.CourseVideoResult
+		global.GDB.Table("course_videos").Select("course_videos.course_id", "videos.seq", "course_videos.video_id").Joins("JOIN videos ON course_videos.video_id = videos.id").Where("videos.seq = ? AND course_videos.course_id = ?", video.Seq, courseID).Scan(&QResult)
+		global.UPLOADQUEUE <- fmt.Sprintf("%v", QResult.VideoID)
 	}
 
 }

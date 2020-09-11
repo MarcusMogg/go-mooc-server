@@ -16,13 +16,15 @@ func SaveVideo(v *entity.Video, courseID uint) error {
 	var tmp entity.Video
 	var QResult entity.CourseVideoResult
 	return global.GDB.Transaction(func(tx *gorm.DB) error {
-		tx.Table("course_videos").Select("course_videos.course_id", "videos.seq").Joins("JOIN videos ON course_videos.video_id = videos.id").Where("seq = ?", v.Seq).Scan(&QResult)
+		tx.Table("course_videos").Select("course_videos.course_id", "videos.seq", "course_videos.video_id").Joins("JOIN videos ON course_videos.video_id = videos.id").Where("videos.seq = ? AND course_videos.course_id = ?", v.Seq, courseID).Scan(&QResult)
 		if QResult.Seq == 0 {
 			tx.Create(v)
 			courseVideo := &entity.CourseVideo{CourseID: courseID, VideoID: v.ID}
 			return tx.Create(courseVideo).Error
 		}
+		tx.First(&tmp, QResult.VideoID)
 		tmp.Format = v.Format
+		tmp.VideoName = v.VideoName
 		tx.Save(&tmp)
 		v = &tmp
 		return os.RemoveAll(tmp.Path)
