@@ -20,6 +20,8 @@ const (
 	ERROR = 7
 	//ValidateError 验证失败返回码
 	ValidateError = 8
+	//TokenError token错误返回码
+	TokenError = 9
 )
 
 // Result 将结果以json的形式输出至响应
@@ -69,4 +71,9 @@ func FailDetailed(code int, data interface{}, message string, c *gin.Context) {
 // FailValidate 接口传入的参数错误
 func FailValidate(c *gin.Context) {
 	FailDetailed(ValidateError, map[string]interface{}{}, "传入参数错误", c)
+}
+
+// FailToken token错误
+func FailToken(c *gin.Context) {
+	FailDetailed(TokenError, map[string]interface{}{}, "token错误", c)
 }
