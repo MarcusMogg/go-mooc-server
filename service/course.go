@@ -15,8 +15,9 @@ func InsertCourse(c *entity.Course) error {
 
 // CheckCourseAuth 检查教师id是否正确
 func CheckCourseAuth(c *entity.Course, u *entity.MUser, tx *gorm.DB) error {
-	result := tx.Where("id = ? AND teacher_id", c.ID, u.ID).First(u)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+	var ct entity.Course
+	result := tx.Where("id = ? AND teacher_id = ?", c.ID, u.ID).First(&ct)
+	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil
 	}
 	return errors.New("教师ID不对应")
@@ -40,7 +41,7 @@ func GetCoursesByTeacID(id uint) []entity.Course {
 func UpdateCourse(c *entity.Course, user *entity.MUser) error {
 	err := CheckCourseAuth(c, user, global.GDB)
 	if err == nil {
-		return global.GDB.Save(&c).Error
+		return global.GDB.Save(c).Error
 	}
 	return err
 

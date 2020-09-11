@@ -17,5 +17,5 @@ func DBTables() {
 	}
 	service.Register(&u)
 	global.GDB.AutoMigrate(&entity.ApplyTeacher{})
-	global.GDB.AutoMigrate(&entity.ApplyTeacher{})
+	global.GDB.AutoMigrate(&entity.Course{})
 }

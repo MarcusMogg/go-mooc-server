@@ -48,7 +48,7 @@ func UpdateCourse(c *gin.Context) {
 		course := service.GetCourseByID(cs.ID)
 		course.Instruction = cs.Instruction
 		course.Name = cs.Name
-		if err = service.UpdateCourse(course, user); err != nil {
+		if err = service.UpdateCourse(course, user); err == nil {
 			response.Ok(c)
 		} else {
 			response.FailWithMessage(err.Error(), c)
