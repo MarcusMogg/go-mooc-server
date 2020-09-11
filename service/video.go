@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"server/global"
 	"server/model/entity"
@@ -13,26 +14,36 @@ import (
 
 // SaveVideo 保存视频信息
 func SaveVideo(v *entity.Video) error {
+	var tmp entity.Video
 	return global.GDB.Transaction(func(tx *gorm.DB) error {
-		result := tx.Where("video_name = ?", v.VideoName).First(v)
+		result := tx.Where("video_name = ? AND course = ?", v.VideoName, v.Course).First(&tmp)
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return tx.Create(v).Error
 		}
-		return errors.New("视频名已存在")
+		tmp.Format = v.Format
+		tx.Save(&tmp)
+		return os.RemoveAll(tmp.Path)
 	})
 }
 
-func upload() {
-	tmp := <-global.UPLOADQUEUE
+func upload(i int) {
 	var video entity.Video
-	id, _ := strconv.Atoi(tmp)
-	global.GDB.Where("id = ?", id).Find(&video)
+	global.GDB.First(&video, i)
+	if video.Format != "mp4" {
+		param := []string{"-i", video.Path + "/" + video.VideoName + "." + video.Format, "-y", "-c:v", "libx264", "-strict", "-2", video.Path + "/" + video.VideoName + ".mp4"}
+		cmd := exec.Command("ffmpeg", param...)
+		if err := cmd.Run(); err != nil {
+			return
+		}
+	}
+	global.GDB.Model(&video).Update("format", "mp4")
 	param := []string{"-y", "-i", video.Path + "/" + video.VideoName + ".mp4", "-vcodec", "copy", "-acodec", "copy", "-vbsf",
 		"h264_mp4toannexb", video.Path + "/" + video.VideoName + ".ts"}
 	cmd := exec.Command("ffmpeg", param...)
 	if err := cmd.Run(); err != nil {
 		return
 	}
+	global.GDB.Model(&video).Update("format", "ts")
 	param = []string{"-i", video.Path + "/" + video.VideoName + ".ts", "-c", "copy", "-map", "0", "-f", "segment", "-segment_list",
 		video.Path + "/" + video.VideoName + ".m3u8", "-segment_time", "5", video.Path + "/" + video.VideoName + "-%03d.ts"}
 	cmd = exec.Command("ffmpeg", param...)
@@ -44,7 +55,8 @@ func upload() {
 
 // Upload 视频转码
 func Upload() {
-	for {
-		upload()
+	for i := range global.UPLOADQUEUE {
+		id, _ := strconv.Atoi(i)
+		go upload(id)
 	}
 }
