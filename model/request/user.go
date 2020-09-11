@@ -18,3 +18,9 @@ type ApplyAgreeReq struct {
 	ID    int  `json:"id"`
 	Agree bool `json:"agree"`
 }
+
+// RenameData 修改用户信息是传入参数
+type RenameData struct {
+	Email    string `json:"email" binding:"required"`
+	NickName string `json:"nickname" binding:"required"`
+}
