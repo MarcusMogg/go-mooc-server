@@ -16,5 +16,6 @@ func Router() *gin.Engine {
 	APIGroup := Router.Group("")
 	router.InitUserRouter(APIGroup)
 	router.InitVideoRouter(APIGroup)
+	
 	return Router
 }

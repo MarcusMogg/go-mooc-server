@@ -13,13 +13,16 @@ import (
 )
 
 // SaveVideo 保存视频信息
-func SaveVideo(v *entity.Video) error {
+func SaveVideo(v *entity.Video, courseID int) error {
 	var tmp entity.Video
 	return global.GDB.Transaction(func(tx *gorm.DB) error {
-		result := tx.Where("order = ?", v.Order).First(&tmp)
+		result := tx.Where("seq = ?", v.Seq).First(&tmp)
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			os.MkdirAll(v.Path, os.ModePerm)
-			return tx.Create(v).Error
+			var id int
+			tx.Create(v)
+			tx.Table("videos").Select("id").Where("seq = ?", v.Seq).Scan(&id)
+			courseVideo := &entity.CourseVideo{CourseID: courseID, VideoID: id}
+			return tx.Create(courseVideo).Error
 		}
 		tmp.Format = v.Format
 		tx.Save(&tmp)

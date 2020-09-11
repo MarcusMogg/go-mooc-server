@@ -8,7 +8,7 @@ type Video struct {
 	VideoName	string
 	Name		string
 	Format		string
-	Order		int
+	Seq			int
 	Path 		string
 }
 

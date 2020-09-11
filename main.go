@@ -16,7 +16,7 @@ func main() {
 
 func runServer() {
 	Router := initialize.Router()
-	Router.Static("source", "./resourse")
+	Router.Static("source", "./video")
 
 	address := fmt.Sprintf(":%d", global.GCONFIG.Addr)
 	Router.Run(address)
