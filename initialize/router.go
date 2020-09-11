@@ -17,5 +17,6 @@ func Router() *gin.Engine {
 	router.InitUserRouter(APIGroup)
 	router.InitVideoRouter(APIGroup)
 	
+	router.InitCourseRouter(APIGroup)
 	return Router
 }

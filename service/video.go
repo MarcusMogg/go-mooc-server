@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -13,19 +12,19 @@ import (
 )
 
 // SaveVideo 保存视频信息
-func SaveVideo(v *entity.Video, courseID int) error {
+func SaveVideo(v *entity.Video, courseID uint) error {
 	var tmp entity.Video
+	var QResult entity.CourseVideoResult
 	return global.GDB.Transaction(func(tx *gorm.DB) error {
-		result := tx.Where("seq = ?", v.Seq).First(&tmp)
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			var id int
+		tx.Table("course_videos").Select("course_videos.course_id", "videos.seq").Joins("JOIN videos ON course_videos.video_id = videos.id").Where("seq = ?", v.Seq).Scan(&QResult)
+		if QResult.Seq == 0 {
 			tx.Create(v)
-			tx.Table("videos").Select("id").Where("seq = ?", v.Seq).Scan(&id)
-			courseVideo := &entity.CourseVideo{CourseID: courseID, VideoID: id}
+			courseVideo := &entity.CourseVideo{CourseID: courseID, VideoID: v.ID}
 			return tx.Create(courseVideo).Error
 		}
 		tmp.Format = v.Format
 		tx.Save(&tmp)
+		v = &tmp
 		return os.RemoveAll(tmp.Path)
 	})
 }

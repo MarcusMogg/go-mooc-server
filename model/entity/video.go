@@ -15,6 +15,12 @@ type Video struct {
 // CourseVideo 关联课程视频
 type CourseVideo struct {
 	gorm.Model
-	CourseID	int
-	VideoID		int
+	CourseID	uint
+	VideoID		uint
+}
+
+// CourseVideoResult 关联查询结果
+type CourseVideoResult struct {
+	CourseID uint
+	Seq 	 int
 }

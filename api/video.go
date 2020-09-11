@@ -15,8 +15,11 @@ import (
 
 // Upload 上传文件
 func Upload(c *gin.Context) {
-
 	courseID, _ := strconv.Atoi(c.PostForm("courseId"))
+	if courseID <= 0 {
+		response.FailWithMessage("错误的课程id", c)
+		return
+	}
 	seq, _ := strconv.Atoi(c.PostForm("seq"))
 	name := c.PostForm(c.PostForm("name"))
 	file, err := c.FormFile("file")
@@ -29,7 +32,7 @@ func Upload(c *gin.Context) {
 
 	video := &entity.Video{VideoName: filename, Seq: seq, Format: format, Path: folder, Name: name}
 
-	if err := service.SaveVideo(video, courseID); err != nil {
+	if err := service.SaveVideo(video, uint(courseID)); err != nil {
 		response.FailWithMessage(fmt.Sprintf("%v", err), c)
 	}
 
@@ -39,9 +42,7 @@ func Upload(c *gin.Context) {
 		response.FailWithMessage(fmt.Sprintf("%v", err), c)
 	} else {
 		response.OkWithMessage("upload success", c)
-		var id int
-		global.GDB.Table("videos").Select("id").Where("seq = ?", video.Seq).Scan(&id)
-		global.UPLOADQUEUE <- fmt.Sprintf("%v", id)
+		global.UPLOADQUEUE <- fmt.Sprintf("%v", video.ID)
 	}
 
 }

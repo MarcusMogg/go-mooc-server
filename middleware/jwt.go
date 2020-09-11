@@ -72,11 +72,7 @@ func JWTAuth() gin.HandlerFunc {
 		jwt := NewJWT()
 		claim, err := jwt.ParseToken(token)
 		if err != nil {
-			if err == ErrTokenExpired {
-				response.FailWithMessage("授权已过期", c)
-			} else {
-				response.Fail(c)
-			}
+			response.FailToken(c)
 			c.Abort()
 			return
 		}
