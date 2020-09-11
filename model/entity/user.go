@@ -8,7 +8,7 @@ type MUser struct {
 	UserName string `gorm:"not null;unique"`
 	Email    string
 	NickName string
-	Password string `gorm:"not null"`
+	Password string `gorm:"not null" json:"-"`
 	Role     Role
 }
 

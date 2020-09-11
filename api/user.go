@@ -67,3 +67,36 @@ func tokenNext(c *gin.Context, u *entity.MUser) {
 	}
 	response.OkWithData(token, c)
 }
+
+// GetUserInfo 获取用户信息
+func GetUserInfo(c *gin.Context) {
+	claim, ok := c.Get("user")
+	if !ok {
+		response.FailWithMessage("未通过jwt认证", c)
+		return
+	}
+	user := claim.(*entity.MUser)
+	response.OkWithData(user, c)
+}
+
+// UpdateUserInfo 获取用户信息
+func UpdateUserInfo(c *gin.Context) {
+	claim, ok := c.Get("user")
+	if !ok {
+		response.FailWithMessage("未通过jwt认证", c)
+		return
+	}
+	user := claim.(*entity.MUser)
+	var ur request.RenameData
+	if err := c.BindJSON(&ur); err == nil {
+		user.NickName = ur.NickName
+		user.Email = ur.Email
+		if err = service.UpdateUser(user); err == nil {
+			response.Ok(c)
+		} else {
+			response.FailWithMessage(err.Error(), c)
+		}
+	} else {
+		response.FailValidate(c)
+	}
+}

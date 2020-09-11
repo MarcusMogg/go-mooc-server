@@ -33,3 +33,8 @@ func GetUserInfoByID(id uint) *entity.MUser {
 	global.GDB.First(&u, id)
 	return &u
 }
+
+// UpdateUser 修改用户信息
+func UpdateUser(user *entity.MUser) error {
+	return global.GDB.Save(user).Error
+}
