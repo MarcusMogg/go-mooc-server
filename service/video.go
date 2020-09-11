@@ -16,8 +16,9 @@ import (
 func SaveVideo(v *entity.Video) error {
 	var tmp entity.Video
 	return global.GDB.Transaction(func(tx *gorm.DB) error {
-		result := tx.Where("video_name = ? AND course = ?", v.VideoName, v.Course).First(&tmp)
+		result := tx.Where("order = ?", v.Order).First(&tmp)
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			os.MkdirAll(v.Path, os.ModePerm)
 			return tx.Create(v).Error
 		}
 		tmp.Format = v.Format
