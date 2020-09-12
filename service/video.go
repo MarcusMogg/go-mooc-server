@@ -25,6 +25,8 @@ func SaveVideo(v *entity.Video, courseID uint) error {
 		tx.First(&tmp, QResult.VideoID)
 		tmp.Format = v.Format
 		tmp.VideoName = v.VideoName
+		tmp.Name = v.Name
+		tmp.Ins = v.Ins
 		tx.Save(&tmp)
 		v = &tmp
 		return os.RemoveAll(tmp.Path)
