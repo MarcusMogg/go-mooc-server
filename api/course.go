@@ -86,3 +86,13 @@ func ReadCourseList(c *gin.Context) {
 func DeleteCourse(c *gin.Context) {
 
 }
+
+// ReadVideoList 读取课程下的视频列表
+func ReadVideoList(c *gin.Context) {
+
+}
+
+//
+func ReadVideoPath() {
+
+}
