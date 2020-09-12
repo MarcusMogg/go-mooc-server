@@ -9,6 +9,7 @@ type Video struct {
 	Name		string
 	Format		string
 	Seq			int
+	Ins			string
 	Path 		string
 }
 
