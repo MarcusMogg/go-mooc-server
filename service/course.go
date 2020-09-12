@@ -76,7 +76,7 @@ func GetVideoByVideoID(videoID uint) *entity.Video {
 func InsertStudent(cid uint, name string) error {
 	return global.GDB.Transaction(func(tx *gorm.DB) error {
 		var uid uint
-		tx.Model(&entity.MUser{}).Select("id").Where("username = ?", name).Scan(&uid)
+		tx.Model(&entity.MUser{}).Select("id").Where("user_name = ?", name).Scan(&uid)
 		if uid == 0 {
 			return errors.New("查无此人")
 		}
