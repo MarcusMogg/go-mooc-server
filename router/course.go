@@ -23,5 +23,7 @@ func InitCourseRouter(Router *gin.RouterGroup) {
 		UserRouter.POST("addstudent", middleware.JWTAuth(), middleware.RoleAuth(entity.Teacher), api.AddStudents)
 		UserRouter.POST("addwatchtime", middleware.JWTAuth(), api.AddWacthTime)
 		UserRouter.GET("getwatchtime", middleware.JWTAuth(), api.GetWatchTimeList)
+
+		UserRouter.DELETE("delete", middleware.JWTAuth(), middleware.RoleAuth(entity.Teacher), api.DeleteCourse)
 	}
 }

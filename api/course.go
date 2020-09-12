@@ -90,7 +90,18 @@ func GetCourseList(c *gin.Context) {
 
 // DeleteCourse 删除课程
 func DeleteCourse(c *gin.Context) {
-
+	claim, ok := c.Get("user")
+	if !ok {
+		response.FailWithMessage("未通过jwt认证", c)
+		return
+	}
+	user := claim.(*entity.MUser)
+	var id request.GetByID
+	if err := c.BindJSON(&id); err == nil {
+		service.DropCourse(id.ID, user.ID)
+	} else {
+		response.FailValidate(c)
+	}
 }
 
 // ReadVideoList 读取课程下的视频列表

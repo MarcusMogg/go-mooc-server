@@ -14,9 +14,9 @@ func InsertCourse(c *entity.Course) error {
 }
 
 // CheckCourseAuth 检查教师id是否正确
-func CheckCourseAuth(c *entity.Course, u *entity.MUser, tx *gorm.DB) error {
+func CheckCourseAuth(cid, uid uint, tx *gorm.DB) error {
 	var ct entity.Course
-	result := tx.Where("id = ? AND teacher_id = ?", c.ID, u.ID).First(&ct)
+	result := tx.Where("id = ? AND teacher_id = ?", cid, uid).First(&ct)
 	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil
 	}
@@ -46,7 +46,7 @@ func GetCourses() []entity.Course {
 
 // UpdateCourse 修改课程信息
 func UpdateCourse(c *entity.Course, user *entity.MUser) error {
-	err := CheckCourseAuth(c, user, global.GDB)
+	err := CheckCourseAuth(c.ID, user.ID, global.GDB)
 	if err == nil {
 		return global.GDB.Save(c).Error
 	}
@@ -106,4 +106,26 @@ func GetWatchTimes(id uint) []entity.CourseStudents {
 	var res []entity.CourseStudents
 	global.GDB.Model(&entity.CourseStudents{}).Where("student_id", id).Find(&res)
 	return res
+}
+
+// DropCourse 删除课程
+func DropCourse(id uint, uid uint) error {
+	return global.GDB.Transaction(func(tx *gorm.DB) error {
+		if err := CheckCourseAuth(id, uid, tx); err != nil {
+			return err
+		}
+		var c entity.Course
+		c.ID = id
+
+		if err := tx.Delete(&c).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("course_id = ?", id).Delete(&entity.CourseStudents{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("course_id = ?", id).Delete(&entity.CourseVideo{}).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 }
