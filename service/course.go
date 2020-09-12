@@ -9,14 +9,33 @@ import (
 )
 
 // InsertCourse 插入数据
-func InsertCourse(c *entity.Course) error {
-	return global.GDB.Create(c).Error
+func InsertCourse(c *entity.Course, uid uint) error {
+	return global.GDB.Transaction(func(tx *gorm.DB) error {
+		if err := global.GDB.Create(c).Error; err != nil {
+			return err
+		}
+		cs := entity.CourseStudents{
+			CourseID:  c.ID,
+			StudentID: uid,
+			WatchTime: 0,
+		}
+		return tx.Create(&cs).Error
+	})
 }
 
 // CheckCourseAuth 检查教师id是否正确
 func CheckCourseAuth(cid, uid uint, tx *gorm.DB) error {
 	var ct entity.Course
 	result := tx.Where("id = ? AND teacher_id = ?", cid, uid).First(&ct)
+	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil
+	}
+	return errors.New("教师ID不对应")
+}
+
+// CheckCourseStudentAuth 检查学生id是否属于课程
+func CheckCourseStudentAuth(cid, uid uint, tx *gorm.DB) error {
+	result := tx.Where("course_id = ? AND student_id = ?", cid, uid).First(&entity.CourseStudents{})
 	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil
 	}

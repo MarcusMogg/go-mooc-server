@@ -1,5 +1,10 @@
 package request
 
+// CourseIDReq 课程ID
+type CourseIDReq struct {
+	ID uint `json:"cid" form:"cid"`
+}
+
 // CourseReq 创建课程申请
 type CourseReq struct {
 	//TeacherID   uint   `json:"id" binding:"required"`

@@ -24,7 +24,7 @@ func CreateCourse(c *gin.Context) {
 			Instruction: course.Instruction,
 			Name:        course.Name,
 		}
-		if err = service.InsertCourse(&courseData); err == nil {
+		if err = service.InsertCourse(&courseData, user.ID); err == nil {
 			response.Ok(c)
 		} else {
 			response.FailWithMessage("课程创建失败", c)
