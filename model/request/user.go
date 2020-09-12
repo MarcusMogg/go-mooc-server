@@ -15,7 +15,7 @@ type LoginData struct {
 
 // ApplyAgreeReq 同意/拒绝教师申请
 type ApplyAgreeReq struct {
-	ID    int  `json:"id"`
+	GetByID
 	Agree bool `json:"agree"`
 }
 
