@@ -37,6 +37,13 @@ func GetCoursesByTeacID(id uint) []entity.Course {
 	return c
 }
 
+// GetCourses 通过教师id获取课程列表
+func GetCourses() []entity.Course {
+	var c []entity.Course
+	global.GDB.Find(&c)
+	return c
+}
+
 // UpdateCourse 修改课程信息
 func UpdateCourse(c *entity.Course, user *entity.MUser) error {
 	err := CheckCourseAuth(c, user, global.GDB)
@@ -65,4 +72,31 @@ func GetVideoByVideoID(videoID uint) *entity.Video {
 	return &v
 }
 
+// InsertStudent 添加学生
+func InsertStudent(cid uint, name string) error {
+	return global.GDB.Transaction(func(tx *gorm.DB) error {
+		var uid uint
+		tx.Model(&entity.MUser{}).Select("id").Where("username = ?", name).Scan(&uid)
+		if uid == 0 {
+			return errors.New("查无此人")
+		}
+		cs := entity.CourseStudents{
+			CourseID:  cid,
+			StudentID: uid,
+			WatchTime: 0,
+		}
+		return tx.Create(&cs).Error
+	})
+}
 
+// AddWatchTime 增加学生观看市场
+func AddWatchTime(cs *entity.CourseStudents) {
+	global.GDB.Model(cs).Update("watch_time", gorm.Expr("watch_time + ?", cs.WatchTime))
+}
+
+//GetWatchTimes 获取某人的所有视频时长
+func GetWatchTimes(id uint) []entity.CourseStudents {
+	var res []entity.CourseStudents
+	global.GDB.Model(&entity.CourseStudents{}).Where("student_id", id).Find(&res)
+	return res
+}
