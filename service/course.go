@@ -46,3 +46,23 @@ func UpdateCourse(c *entity.Course, user *entity.MUser) error {
 	return err
 
 }
+
+// GetVideosByCourseID 通过课程id获取视频列表
+func GetVideosByCourseID(courseID uint) []entity.Video {
+	var cv []entity.CourseVideo
+	global.GDB.Where("course_id = ?", courseID).Find(&cv)
+	var v []entity.Video
+	for _, cv := range cv {
+		v = append(v, *GetVideoByVideoID(cv.VideoID))
+	}
+	return v
+}
+
+// GetVideoByVideoID 通过视频id获取视频信息
+func GetVideoByVideoID(videoID uint) *entity.Video {
+	var v entity.Video
+	global.GDB.First(&v, videoID)
+	return &v
+}
+
+

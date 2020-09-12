@@ -22,6 +22,7 @@ func Upload(c *gin.Context) {
 	}
 	seq, _ := strconv.Atoi(c.PostForm("seq"))
 	name := c.PostForm(c.PostForm("name"))
+	ins := c.PostForm(c.PostForm("ins"))
 	file, err := c.FormFile("file")
 	if err != nil {
 		response.FailWithMessage("file not exist", c)
@@ -30,7 +31,7 @@ func Upload(c *gin.Context) {
 	filename, format := tmp[0], tmp[1]
 	folder := strings.Join([]string{"video/", fmt.Sprintf("%v", courseID), "/", fmt.Sprintf("%v", seq)}, "")
 
-	video := &entity.Video{VideoName: filename, Seq: seq, Format: format, Path: folder, Name: name}
+	video := &entity.Video{VideoName: filename, Seq: seq, Format: format, Path: folder, Name: name, Ins: ins}
 
 	err = service.SaveVideo(video, uint(courseID))
 	if err != nil {
@@ -49,3 +50,4 @@ func Upload(c *gin.Context) {
 	}
 
 }
+

@@ -86,3 +86,30 @@ func ReadCourseList(c *gin.Context) {
 func DeleteCourse(c *gin.Context) {
 
 }
+
+// ReadVideoList 读取课程下的视频列表
+func ReadVideoList(c *gin.Context) {
+	var id request.GetByID
+	if err := c.BindJSON(&id); err == nil {
+		videos := service.GetVideosByCourseID(id.ID)
+		response.OkWithData(videos, c)
+	} else {
+		response.FailValidate(c)
+	}
+}
+
+// ReadVideo 读取视频信息
+func ReadVideo(c *gin.Context) {
+	var id request.GetByID
+	if err := c.BindJSON(&id); err == nil {
+		video := service.GetVideoByVideoID(id.ID)
+		response.OkWithData(video, c)
+	} else {
+		response.FailValidate(c)
+	}
+}
+
+// 
+func ModifyVideoList(){
+	
+}
