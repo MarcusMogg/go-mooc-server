@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"server/global"
@@ -46,11 +45,12 @@ func upload(i int) {
 	}
 	global.GDB.Model(&video).Update("format", "mp4")
 
-	param := []string{"-i", video.Path + "/" + video.VideoName + ".mp4", "-b:v", "10000k", "-s", "640*480", video.Path + "/" + video.VideoName + ".ts"}
+	/* param := []string{"-i", video.Path + "/" + video.VideoName + ".mp4", "-b:v", "10000k", "-s", "640*480", video.Path + "/" + video.VideoName + ".ts"}
 	cmd := exec.Command("ffmpeg", param...)
 	if err := cmd.Run(); err != nil {
 		return
 	}
+
 
 	param = []string{"-y", "-i", video.Path + "/" + video.VideoName + ".mp4", "-vcodec", "copy", "-acodec", "copy", "-vbsf",
 		"h264_mp4toannexb", video.Path + "/" + video.VideoName + ".ts"}
@@ -66,7 +66,7 @@ func upload(i int) {
 	if out, err := cmd.CombinedOutput(); err != nil {
 		fmt.Println(string(out), err.Error())
 	}
-	global.GDB.Model(&video).Update("format", "m3u8")
+	global.GDB.Model(&video).Update("format", "m3u8")*/
 }
 
 // Upload 视频转码
