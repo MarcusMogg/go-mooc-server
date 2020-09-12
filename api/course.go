@@ -82,6 +82,12 @@ func ReadCourseList(c *gin.Context) {
 	response.OkWithData(courses, c)
 }
 
+// GetCourseList 获取所有课程
+func GetCourseList(c *gin.Context) {
+	courses := service.GetCourses()
+	response.OkWithData(courses, c)
+}
+
 // DeleteCourse 删除课程
 func DeleteCourse(c *gin.Context) {
 

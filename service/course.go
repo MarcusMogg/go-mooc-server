@@ -37,6 +37,13 @@ func GetCoursesByTeacID(id uint) []entity.Course {
 	return c
 }
 
+// GetCourses 通过教师id获取课程列表
+func GetCourses() []entity.Course {
+	var c []entity.Course
+	global.GDB.Find(&c)
+	return c
+}
+
 // UpdateCourse 修改课程信息
 func UpdateCourse(c *entity.Course, user *entity.MUser) error {
 	err := CheckCourseAuth(c, user, global.GDB)
