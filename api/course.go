@@ -140,6 +140,17 @@ func AddStudents(c *gin.Context) {
 	}
 }
 
+// GetStudents 获取用户列表
+func GetStudents(c *gin.Context) {
+	var id request.GetByID
+	if err := c.BindJSON(&id); err == nil {
+		var user []entity.MUser = service.GetStudents(id.ID)
+		response.OkWithData(user, c)
+	} else {
+		response.FailValidate(c)
+	}
+}
+
 // AddWacthTime 增加学生学习时长
 func AddWacthTime(c *gin.Context) {
 	claim, ok := c.Get("user")

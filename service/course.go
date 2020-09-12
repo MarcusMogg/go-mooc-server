@@ -89,6 +89,13 @@ func InsertStudent(cid uint, name string) error {
 	})
 }
 
+// GetStudents 获取学生列表
+func GetStudents(cid uint) []entity.MUser {
+	var users []entity.MUser
+	global.GDB.Table("m_users").Joins("JOIN course_students ON m_users.ID = course_students.StudentID").Where("course_students.course_id = ?", cid).Find(&users)
+	return users
+}
+
 // AddWatchTime 增加学生观看市场
 func AddWatchTime(cs *entity.CourseStudents) {
 	global.GDB.Model(cs).Update("watch_time", gorm.Expr("watch_time + ?", cs.WatchTime))

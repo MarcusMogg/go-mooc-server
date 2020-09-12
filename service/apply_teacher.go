@@ -34,6 +34,7 @@ func PaginateApply(pagenum, pagesize int) ([]response.ApplyTeacherResp, int64, e
 			res = append(res, response.ApplyTeacherResp{
 				ID:       i.ID,
 				UserName: user.UserName,
+				NickName: user.NickName,
 				Email:    user.Email,
 				Date:     i.CreatedAt.Format(global.TimeTemplateDay),
 				State:    i.State,

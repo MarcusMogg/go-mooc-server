@@ -16,6 +16,7 @@ func InitCourseRouter(Router *gin.RouterGroup) {
 		UserRouter.POST("update", middleware.JWTAuth(), middleware.RoleAuth(entity.Teacher), api.UpdateCourse)
 		UserRouter.POST("get", api.ReadCourse)
 		UserRouter.GET("getall", api.GetCourseList)
+		UserRouter.GET("getstudents", api.GetStudents)
 		UserRouter.POST("getlist", middleware.JWTAuth(), api.ReadCourseList)
 		UserRouter.POST("getvideolist", api.ReadVideoList)
 		UserRouter.POST("getvideo", api.ReadVideo)
