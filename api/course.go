@@ -5,6 +5,7 @@ import (
 	"server/model/request"
 	"server/model/response"
 	"server/service"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -84,7 +85,14 @@ func ReadCourseList(c *gin.Context) {
 
 // GetCourseList 获取所有课程
 func GetCourseList(c *gin.Context) {
-	courses := service.GetCourses()
+	pagenum, err1 := strconv.Atoi(c.DefaultQuery("pagenum", "1"))
+	pagesize, err2 := strconv.Atoi(c.DefaultQuery("pagesize", "10"))
+	keyword := c.Query("key")
+	if err1 != nil || err2 != nil {
+		response.FailWithMessage("参数错误", c)
+		return
+	}
+	courses := service.GetCourses(pagenum, pagesize, keyword)
 	response.OkWithData(courses, c)
 }
 

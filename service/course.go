@@ -57,10 +57,13 @@ func GetCoursesByTeacID(id uint) []entity.Course {
 }
 
 // GetCourses 通过教师id获取课程列表
-func GetCourses() []entity.Course {
-	var c []entity.Course
-	global.GDB.Find(&c)
-	return c
+func GetCourses(pagenum, pagesize int, keyword string) ([]entity.Course, int64) {
+	var c []entity.Course = make([]entity.Course, 0, pagesize)
+	var total int64
+	offset := (pagenum - 1) * pagesize
+
+	global.GDB.Model(&entity.Course{}).Where("name LIKE ?", "%"+keyword+"%").Count(&total).Offset(offset).Limit(pagesize).Find(&c)
+	return c, total
 }
 
 // UpdateCourse 修改课程信息
