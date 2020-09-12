@@ -2,6 +2,8 @@ package router
 
 import (
 	"server/api"
+	"server/middleware"
+	"server/model/entity"
 
 	"github.com/gin-gonic/gin"
 )
@@ -10,6 +12,6 @@ import (
 func InitVideoRouter(Router *gin.RouterGroup) {
 	UserRouter := Router.Group("video")
 	{
-		UserRouter.POST("upload", api.Upload)
+		UserRouter.POST("upload", middleware.JWTAuth(), middleware.RoleAuth(entity.Teacher), api.Upload)
 	}
 }
