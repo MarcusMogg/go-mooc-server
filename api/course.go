@@ -92,8 +92,11 @@ func GetCourseList(c *gin.Context) {
 		response.FailWithMessage("参数错误", c)
 		return
 	}
-	courses := service.GetCourses(pagenum, pagesize, keyword)
-	response.OkWithData(courses, c)
+	courses, tot := service.GetCourses(pagenum, pagesize, keyword)
+	response.OkWithData(gin.H{
+		"total": tot,
+		"data":  courses,
+	}, c)
 }
 
 // DeleteCourse 删除课程
