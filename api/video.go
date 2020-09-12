@@ -21,8 +21,8 @@ func Upload(c *gin.Context) {
 		return
 	}
 	seq, _ := strconv.Atoi(c.PostForm("seq"))
-	name := c.PostForm(c.PostForm("name"))
-	ins := c.PostForm(c.PostForm("ins"))
+	name := c.PostForm("name")
+	ins := c.PostForm("ins")
 	file, err := c.FormFile("file")
 	if err != nil {
 		response.FailWithMessage("file not exist", c)
@@ -50,4 +50,3 @@ func Upload(c *gin.Context) {
 	}
 
 }
-
