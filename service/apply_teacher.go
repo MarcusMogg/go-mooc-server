@@ -30,7 +30,7 @@ func PaginateApply(pagenum, pagesize int) ([]response.ApplyTeacherResp, int64, e
 	result := global.GDB.Model(&entity.ApplyTeacher{}).Count(&total).Offset(offset).Limit(pagesize).Find(&applys)
 	if result.Error == nil {
 		for _, i := range applys {
-			user := GetUserInfoByID(i.ID)
+			user := GetUserInfoByID(i.UserID)
 			res = append(res, response.ApplyTeacherResp{
 				ID:       i.ID,
 				UserName: user.UserName,

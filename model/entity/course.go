@@ -11,3 +11,10 @@ type Course struct {
 	Name        string
 	Instruction string
 }
+
+// CourseStudents 加入课程的学生
+type CourseStudents struct {
+	StudentID uint   `gorm:"primaryKey;autoIncrement:false" json:"-"`
+	CourseID  uint   `gorm:"primaryKey;autoIncrement:false" json:"cid"`
+	WatchTime uint64 `json:"watchtime"`
+}
