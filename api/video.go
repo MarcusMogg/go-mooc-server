@@ -26,6 +26,7 @@ func Upload(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
 		response.FailWithMessage("file not exist", c)
+		return
 	}
 	tmp := strings.Split(file.Filename, ".")
 	filename, format := tmp[0], tmp[1]
@@ -50,3 +51,4 @@ func Upload(c *gin.Context) {
 	}
 
 }
+

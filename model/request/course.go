@@ -20,6 +20,6 @@ type CourseUReq struct {
 
 // AddStudentsReq 添加学生申请
 type AddStudentsReq struct {
-	GetByID
+	CourseIDReq
 	UserNames []string `json:"studentnames" binding:"required"`
 }
