@@ -3,52 +3,55 @@ package api
 import (
 	"fmt"
 	"os"
-	"server/global"
 	"server/model/entity"
 	"server/model/response"
 	"server/service"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
 // Upload 上传文件
 func Upload(c *gin.Context) {
-	courseID, _ := strconv.Atoi(c.PostForm("courseId"))
-	if courseID <= 0 {
-		response.FailWithMessage("错误的课程id", c)
+	video := readFormData(c)
+	if err := service.CourseExist(video.CourseID); err != nil {
+		response.FailWithMessage("课程id不存在", c)
 		return
 	}
-	seq, _ := strconv.Atoi(c.PostForm("seq"))
-	name := c.PostForm("name")
-	ins := c.PostForm("ins")
-	file, err := c.FormFile("file")
-	if err != nil {
-		response.FailWithMessage("file not exist", c)
-		return
-	}
-	tmp := strings.Split(file.Filename, ".")
-	filename, format := tmp[0], tmp[1]
-	folder := strings.Join([]string{"video/", fmt.Sprintf("%v", courseID), "/", fmt.Sprintf("%v", seq)}, "")
 
-	video := &entity.Video{VideoName: filename, Seq: seq, Format: format, Path: folder, Name: name, Ins: ins}
-
-	err = service.SaveVideo(video, uint(courseID))
-	if err != nil {
+	if err := service.SaveVideo(video); err != nil {
 		response.FailWithMessage(fmt.Sprintf("%v", err), c)
 	}
 
-	dst := []string{folder, "/", filename, ".", format}
-	os.MkdirAll(folder, os.ModePerm)
-	if err := c.SaveUploadedFile(file, strings.Join(dst, "")); err != nil {
+	os.RemoveAll(video.Path)
+	os.MkdirAll(video.Path, os.ModePerm)
+	if err := uploadFile(video.Path, c); err != nil {
 		response.FailWithMessage(fmt.Sprintf("%v", err), c)
-	} else {
-		response.OkWithMessage("upload success", c)
-		var QResult entity.CourseVideoResult
-		global.GDB.Table("course_videos").Select("course_videos.course_id", "videos.seq", "course_videos.video_id").Joins("JOIN videos ON course_videos.video_id = videos.id").Where("videos.seq = ? AND course_videos.course_id = ?", video.Seq, courseID).Scan(&QResult)
-		global.UPLOADQUEUE <- fmt.Sprintf("%v", QResult.VideoID)
 	}
-
+	response.OkWithMessage("视频上传成功", c)
 }
 
+func readFormData(c *gin.Context) *entity.Video {
+	video := &entity.Video{}
+
+	cidSnap, _ := strconv.Atoi(c.PostForm("courseId"))
+	cid := uint(cidSnap)
+	video.CourseID = cid
+
+	seqSnap, _ := strconv.Atoi(c.PostForm("seq"))
+	seq := uint(seqSnap)
+	video.Seq = seq
+
+	video.Path = "video/" + fmt.Sprintf("%v", cid) + "/" + fmt.Sprintf("%v", seq) + "/"
+
+	name := c.PostForm("name")
+	video.Name = name
+
+	ins := c.PostForm("ins")
+	video.Introduction = ins
+
+	file, _ := c.FormFile("file")
+	video.VideoName, video.Format = getFileInfo(file.Filename)
+
+	return video
+}

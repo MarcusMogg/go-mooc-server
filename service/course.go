@@ -77,20 +77,22 @@ func UpdateCourse(c *entity.Course, user *entity.MUser) error {
 }
 
 // GetVideosByCourseID 通过课程id获取视频列表
-func GetVideosByCourseID(courseID uint) []entity.Video {
-	var cv []entity.CourseVideo
-	global.GDB.Where("course_id = ?", courseID).Find(&cv)
+func GetVideosByCourseID(cid uint) []entity.Video {
 	var v []entity.Video
-	for _, cv := range cv {
-		v = append(v, *GetVideoByVideoID(cv.VideoID))
-	}
+	global.GDB.Where("course_id = ?", cid).Find(&v)
 	return v
 }
 
+// CourseExist 通过课程id判断课程是否存在
+func CourseExist(cid uint) error {
+	var c entity.Course
+	return global.GDB.First(&c, cid).Error
+}
+
 // GetVideoByVideoID 通过视频id获取视频信息
-func GetVideoByVideoID(videoID uint) *entity.Video {
+func GetVideoByVideoID(vid uint) *entity.Video {
 	var v entity.Video
-	global.GDB.First(&v, videoID)
+	global.GDB.First(&v, vid)
 	return &v
 }
 
@@ -143,9 +145,6 @@ func DropCourse(id uint, uid uint) error {
 			return err
 		}
 		if err := tx.Where("course_id = ?", id).Delete(&entity.CourseStudents{}).Error; err != nil {
-			return err
-		}
-		if err := tx.Where("course_id = ?", id).Delete(&entity.CourseVideo{}).Error; err != nil {
 			return err
 		}
 		return nil

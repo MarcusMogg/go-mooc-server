@@ -1,7 +1,7 @@
 package service
 
 import (
-	"os"
+	"errors"
 	"os/exec"
 	"server/global"
 	"server/model/entity"
@@ -11,30 +11,31 @@ import (
 )
 
 // SaveVideo 保存视频信息
-func SaveVideo(v *entity.Video, courseID uint) error {
+func SaveVideo(v *entity.Video) error {
 	var tmp entity.Video
-	var QResult entity.CourseVideoResult
 	return global.GDB.Transaction(func(tx *gorm.DB) error {
-		tx.Table("course_videos").Select("course_videos.course_id", "videos.seq", "course_videos.video_id").Joins("JOIN videos ON course_videos.video_id = videos.id").Where("videos.seq = ? AND course_videos.course_id = ?", v.Seq, courseID).Scan(&QResult)
-		if QResult.Seq == 0 {
-			tx.Create(v)
-			courseVideo := &entity.CourseVideo{CourseID: courseID, VideoID: v.ID}
-			return tx.Create(courseVideo).Error
+		result := tx.Where("course_id = ? AND seq = ?", v.CourseID, v.Seq).First(&tmp)
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return tx.Create(v).Error
 		}
-		tx.First(&tmp, QResult.VideoID)
-		tmp.Format = v.Format
-		tmp.VideoName = v.VideoName
-		tmp.Name = v.Name
-		tmp.Ins = v.Ins
+		copyVideoInfo(&tmp, v)
 		tx.Save(&tmp)
-		v = &tmp
-		return os.RemoveAll(tmp.Path)
+		return nil
 	})
 }
 
-func upload(i int) {
+// copyVideoInfo 复制video信息
+func copyVideoInfo(video *entity.Video, copiedVideo *entity.Video) {
+	video.VideoName = copiedVideo.VideoName
+	video.Format = copiedVideo.Format
+	video.Name = copiedVideo.Name
+	video.Introduction = copiedVideo.Introduction
+}
+
+// transcoding 视频转码
+func transcoding(vid uint) {
 	var video entity.Video
-	global.GDB.First(&video, i)
+	global.GDB.First(&video, vid)
 
 	if video.Format != "mp4" {
 		param := []string{"-i", video.Path + "/" + video.VideoName + "." + video.Format, "-y", "-c:v", "libx264", "-strict", "-2", video.Path + "/" + video.VideoName + ".mp4"}
@@ -69,10 +70,16 @@ func upload(i int) {
 	global.GDB.Model(&video).Update("format", "m3u8")*/
 }
 
-// Upload 视频转码
-func Upload() {
-	for i := range global.UPLOADQUEUE {
-		id, _ := strconv.Atoi(i)
-		go upload(id)
+// Transcoding 视频转码
+func Transcoding() {
+	for id := range global.UPLOADQUEUE {
+		id, _ := strconv.Atoi(id)
+		vid := uint(id)
+		go transcoding(vid)
 	}
+}
+
+// GeneratePath 生成视频路径
+func GeneratePath(video *entity.Video) string {
+	return video.Path + "/" + video.VideoName + video.Format
 }

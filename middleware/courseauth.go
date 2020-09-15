@@ -24,9 +24,13 @@ func CourseAuth() gin.HandlerFunc {
 		user := claim.(*entity.MUser)
 		var cid request.CourseIDReq
 		if err := c.BindJSON(&cid); err == nil {
-			if err = service.CheckCourseStudentAuth(cid.ID, user.ID, global.GDB); err == nil {
-				c.Next()
-				return
+			if err := service.CourseExist(cid.ID); err == nil {
+				if err = service.CheckCourseStudentAuth(cid.ID, user.ID, global.GDB); err == nil {
+					c.Next()
+					return
+				}
+			} else {
+				response.FailWithMessage("课程id不存在", c)
 			}
 		}
 		response.FailWithMessage("不属于课程", c)

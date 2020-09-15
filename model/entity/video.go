@@ -5,24 +5,17 @@ import "gorm.io/gorm"
 // Video 视频
 type Video struct {
 	gorm.Model
-	VideoName string
-	Name      string
-	Format    string
-	Seq       int
-	Ins       string
+
+	// 查询视频重复
+	CourseID uint
+	Seq      uint
+
+	// 获取静态路径 Path+VideoName+Format
 	Path      string
-}
+	VideoName string
+	Format    string
 
-// CourseVideo 关联课程视频
-type CourseVideo struct {
-	gorm.Model
-	CourseID uint
-	VideoID  uint
-}
-
-// CourseVideoResult 关联查询结果
-type CourseVideoResult struct {
-	CourseID uint
-	Seq      int
-	VideoID  uint
+	// 视频展示
+	Name         string
+	Introduction string
 }
