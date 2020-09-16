@@ -100,3 +100,14 @@ func UpdateUserInfo(c *gin.Context) {
 		response.FailValidate(c)
 	}
 }
+
+// UpdateAvatar 上传头像
+func UpdateAvatar(c *gin.Context) {
+	claim, ok := c.Get("user")
+	if !ok {
+		response.FailWithMessage("未通过jwt认证", c)
+		return
+	}
+	user := claim.(*entity.MUser)
+	file, _ := c.FormFile("file")
+}

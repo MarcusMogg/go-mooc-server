@@ -9,6 +9,7 @@ type MUser struct {
 	Email    string
 	NickName string
 	Password string `gorm:"not null" json:"-"`
+	Avatar   string // 用户头像地址
 	Role     Role
 }
 
@@ -24,15 +25,8 @@ const (
 	Admin
 )
 
-// FriendRequest 好友申请数据库
-type FriendRequest struct {
+// WatchList from关注to
+type WatchList struct {
 	FromID uint `gorm:"primaryKey;autoIncrement:false"`
 	ToID   uint `gorm:"primaryKey;autoIncrement:false"`
-	Status bool // 同意与否
-}
-
-// UserFriend 好友信息数据库
-type UserFriend struct {
-	UserID   uint `gorm:"primaryKey;autoIncrement:false"`
-	FriendID uint `gorm:"primaryKey;autoIncrement:false"`
 }

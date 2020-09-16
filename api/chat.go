@@ -45,25 +45,7 @@ func AloneWS(c *gin.Context) {
 			break
 		}
 		if msg.CMRType == request.SENDMSG {
-			tows, ok := global.CLIENTS.Load(msg.ToID)
-			msgentity := entity.ChatMessage{
-				FromID: user.ID,
-				ToID:   msg.ToID,
-				Msg:    msg.Msg,
-				MType:  entity.MAlone,
-				Status: false,
-			}
-			service.InsertMessage(&msgentity)
-			if ok {
-				msgreq := response.ChatMsgResp{
-					FromID:   user.ID,
-					SendTime: msgentity.CreatedAt,
-					Msg:      msg.Msg,
-					MType:    entity.MAlone,
-				}
-				err := (tows.(*websocket.Conn)).WriteJSON(msgreq)
-				fmt.Println("chat/alonews:", err)
-			}
+			sendMessage(user.ID, msg.ToID, msg.Msg, entity.MAlone)
 		} else {
 			service.AckMsg(msg.ToID, user.ID)
 		}
@@ -92,4 +74,26 @@ func GetUnreadMsgNum(c *gin.Context) {
 	user := claim.(*entity.MUser)
 	msg := service.GetUnreadMsgNum(user.ID)
 	response.OkWithData(msg, c)
+}
+
+func sendMessage(from, to uint, msg string, tp entity.MsgType) {
+	tows, ok := global.CLIENTS.Load(to)
+	msgentity := entity.ChatMessage{
+		FromID: from,
+		ToID:   to,
+		Msg:    msg,
+		MType:  tp,
+		Status: false,
+	}
+	service.InsertMessage(&msgentity)
+	if ok {
+		msgreq := response.ChatMsgResp{
+			FromID:   from,
+			SendTime: msgentity.CreatedAt,
+			Msg:      msg,
+			MType:    tp,
+		}
+		err := (tows.(*websocket.Conn)).WriteJSON(msgreq)
+		fmt.Println("chat/sendmessage:", err)
+	}
 }
