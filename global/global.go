@@ -2,6 +2,7 @@ package global
 
 import (
 	"server/config"
+	"sync"
 
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
@@ -19,6 +20,8 @@ var (
 	GDB *gorm.DB
 	// UPLOADQUEUE 上传队列
 	UPLOADQUEUE chan string
+	// CLIENTS 用户套接字
+	CLIENTS sync.Map
 )
 
 // TimeTemplateDay 时间转换模板，到天
