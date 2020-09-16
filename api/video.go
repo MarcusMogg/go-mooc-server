@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"os"
+	"server/global"
 	"server/model/entity"
 	"server/model/response"
 	"server/service"
@@ -29,6 +30,7 @@ func Upload(c *gin.Context) {
 		response.FailWithMessage(fmt.Sprintf("%v", err), c)
 	}
 	response.OkWithMessage("视频上传成功", c)
+	global.UPLOADQUEUE <- fmt.Sprintf("%v", video.ID)
 }
 
 func readFormData(c *gin.Context) *entity.Video {
@@ -42,7 +44,7 @@ func readFormData(c *gin.Context) *entity.Video {
 	seq := uint(seqSnap)
 	video.Seq = seq
 
-	video.Path = "video/" + fmt.Sprintf("%v", cid) + "/" + fmt.Sprintf("%v", seq) + "/"
+	video.Path = "source/video/" + fmt.Sprintf("%v", cid) + "/" + fmt.Sprintf("%v", seq) + "/"
 
 	name := c.PostForm("name")
 	video.Name = name
