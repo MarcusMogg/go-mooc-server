@@ -23,3 +23,16 @@ const (
 	// Admin 管理员
 	Admin
 )
+
+// FriendRequest 好友申请数据库
+type FriendRequest struct {
+	FromID uint `gorm:"primaryKey;autoIncrement:false"`
+	ToID   uint `gorm:"primaryKey;autoIncrement:false"`
+	Status bool // 同意与否
+}
+
+// UserFriend 好友信息数据库
+type UserFriend struct {
+	UserID   uint `gorm:"primaryKey;autoIncrement:false"`
+	FriendID uint `gorm:"primaryKey;autoIncrement:false"`
+}
