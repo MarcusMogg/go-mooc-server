@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"os/exec"
 	"server/global"
 	"server/model/entity"
@@ -20,6 +21,7 @@ func SaveVideo(v *entity.Video) error {
 		}
 		copyVideoInfo(&tmp, v)
 		tx.Save(&tmp)
+		v.ID = tmp.ID
 		return nil
 	})
 }
@@ -37,37 +39,36 @@ func transcoding(vid uint) {
 	var video entity.Video
 	global.GDB.First(&video, vid)
 
-	if video.Format != "mp4" {
-		param := []string{"-i", video.Path + "/" + video.VideoName + "." + video.Format, "-y", "-c:v", "libx264", "-strict", "-2", video.Path + "/" + video.VideoName + ".mp4"}
+	if video.Format != ".mp4" {
+		param := []string{"-i", video.Path + video.VideoName + video.Format, "-y", "-c:v", "libx264", "-strict", "-2", video.Path + video.VideoName + ".mp4"}
 		cmd := exec.Command("ffmpeg", param...)
 		if err := cmd.Run(); err != nil {
 			return
 		}
 	}
-	global.GDB.Model(&video).Update("format", "mp4")
+	global.GDB.Model(&video).Update("format", ".mp4")
 
-	/* param := []string{"-i", video.Path + "/" + video.VideoName + ".mp4", "-b:v", "10000k", "-s", "640*480", video.Path + "/" + video.VideoName + ".ts"}
+	param := []string{"-i", video.Path + video.VideoName + ".mp4", "-b:v", "10000k", "-s", "640*480", video.Path + video.VideoName + ".ts"}
 	cmd := exec.Command("ffmpeg", param...)
 	if err := cmd.Run(); err != nil {
 		return
 	}
 
-
-	param = []string{"-y", "-i", video.Path + "/" + video.VideoName + ".mp4", "-vcodec", "copy", "-acodec", "copy", "-vbsf",
-		"h264_mp4toannexb", video.Path + "/" + video.VideoName + ".ts"}
+	param = []string{"-y", "-i", video.Path + video.VideoName + ".mp4", "-vcodec", "copy", "-acodec", "copy", "-vbsf",
+		"h264_mp4toannexb", video.Path + video.VideoName + ".ts"}
 	cmd = exec.Command("ffmpeg", param...)
 	if err := cmd.Run(); err != nil {
 		return
 	}
-	global.GDB.Model(&video).Update("format", "ts")
+	global.GDB.Model(&video).Update("format", ".ts")
 
-	param = []string{"-i", video.Path + "/" + video.VideoName + ".ts", "-c", "copy", "-map", "0", "-f", "segment", "-segment_list",
-		video.Path + "/" + video.VideoName + ".m3u8", "-segment_time", "5", video.Path + "/" + video.VideoName + "-%03d.ts"}
+	param = []string{"-i", video.Path + video.VideoName + ".ts", "-c", "copy", "-map", "0", "-f", "segment", "-segment_list",
+		video.Path + video.VideoName + ".m3u8", "-segment_time", "5", video.Path + video.VideoName + "-%03d.ts"}
 	cmd = exec.Command("ffmpeg", param...)
 	if out, err := cmd.CombinedOutput(); err != nil {
 		fmt.Println(string(out), err.Error())
 	}
-	global.GDB.Model(&video).Update("format", "m3u8")*/
+	global.GDB.Model(&video).Update("format", "m3u8")
 }
 
 // Transcoding 视频转码
