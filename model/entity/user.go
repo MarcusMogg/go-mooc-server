@@ -5,12 +5,13 @@ import "gorm.io/gorm"
 // MUser 数据库用户字段
 type MUser struct {
 	gorm.Model
-	UserName string `gorm:"not null;unique"`
-	Email    string
-	NickName string
-	Password string `gorm:"not null" json:"-"`
-	Avatar   string // 用户头像地址
-	Role     Role
+	UserName    string `gorm:"not null;unique"`
+	Email       string
+	NickName    string
+	Password    string `gorm:"not null" json:"-"`
+	Avatar      string // 用户头像地址
+	Description string
+	Role        Role
 }
 
 // Role 用户身份

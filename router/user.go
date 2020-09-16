@@ -18,6 +18,12 @@ func InitUserRouter(Router *gin.RouterGroup) {
 		UserRouter.POST("apply", middleware.JWTAuth(), api.Apply)
 		UserRouter.POST("agree", middleware.JWTAuth(), middleware.RoleAuth(entity.Admin), api.AgreeApply)
 		UserRouter.GET("info", middleware.JWTAuth(), api.GetUserInfo)
+		UserRouter.GET("userinfo", middleware.JWTAuth(), api.GetUserInfo)
 		UserRouter.POST("update", middleware.JWTAuth(), api.UpdateUserInfo)
+		UserRouter.POST("avatar", middleware.JWTAuth(), api.UpdateAvatar)
+
+		UserRouter.POST("watch", middleware.JWTAuth(), api.WatchUser)
+		UserRouter.GET("iwatchwho", middleware.JWTAuth(), api.IWatchWho)
+		UserRouter.GET("whowatchi", middleware.JWTAuth(), api.WhoWatchI)
 	}
 }

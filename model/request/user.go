@@ -21,6 +21,7 @@ type ApplyAgreeReq struct {
 
 // RenameData 修改用户信息是传入参数
 type RenameData struct {
-	Email    string `json:"email" binding:"required"`
-	NickName string `json:"nickname" binding:"required"`
+	Email       string `json:"email" binding:"required"`
+	NickName    string `json:"nickname" binding:"required"`
+	Description string `json:"desc" binding:"required"`
 }
