@@ -10,28 +10,28 @@ import (
 // Live 直播信息
 type Live struct {
 	gorm.Model
-	Name         string
-	Introduction string
-	CourseID     uint
-	CourseName   string
-	StartTime    string
-	EndTime      string
+	Name         string `json:"name"`
+	Introduction string `json:"introduction"`
+	CourseID     uint   `json:"courseid"`
+	CourseName   string `json:"coursename"`
+	StartTime    string `json:"starttime"`
+	EndTime      string `json:"endtime"`
 }
 
 // SafeMap 线程安全的map
 type SafeMap struct {
-	rooms map[uint]map[uint]*websocket.Conn
+	Rooms map[uint]map[uint]*websocket.Conn
 	mux   sync.Mutex
 }
 
 // AddSocket 添加socket
 func (c *SafeMap) AddSocket(liveID uint, uid uint, conn *websocket.Conn) {
 	c.mux.Lock()
-	if c.rooms[liveID] == nil {
-		c.rooms[liveID] = map[uint]*websocket.Conn{uid: conn}
-		c.rooms[liveID][uid] = conn
+	if c.Rooms[liveID] == nil {
+		c.Rooms[liveID] = map[uint]*websocket.Conn{uid: conn}
+		c.Rooms[liveID][uid] = conn
 	} else {
-		c.rooms[liveID][uid] = conn
+		c.Rooms[liveID][uid] = conn
 	}
 	c.mux.Unlock()
 }
@@ -39,13 +39,20 @@ func (c *SafeMap) AddSocket(liveID uint, uid uint, conn *websocket.Conn) {
 // DropSocket 移除socket
 func (c *SafeMap) DropSocket(liveID uint, uid uint) {
 	c.mux.Lock()
-	delete(c.rooms[liveID], uid)
+	delete(c.Rooms[liveID], uid)
 	c.mux.Unlock()
 }
 
 // DropLive 移除直播号
 func (c *SafeMap) DropLive(liveID uint) {
 	c.mux.Lock()
-	delete(c.rooms, liveID)
+	delete(c.Rooms, liveID)
 	c.mux.Unlock()
 }
+
+// Init 初始化函数
+func (c *SafeMap) Init() {
+	c.Rooms = make(map[uint]map[uint]*websocket.Conn)
+}
+
+

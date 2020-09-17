@@ -19,5 +19,6 @@ func Router() *gin.Engine {
 
 	router.InitCourseRouter(APIGroup)
 	router.InitChatRouter(APIGroup)
+	router.InitLiveRouter(APIGroup)
 	return Router
 }

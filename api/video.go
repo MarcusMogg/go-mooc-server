@@ -16,22 +16,29 @@ import (
 // Upload 上传文件
 func Upload(c *gin.Context) {
 	video := readFormData(c)
-	err := service.CourseExist(video.CourseID)
-	if err != nil {
-		response.FailWithMessage("课程id不存在", c)
-		return
-	}
+	t := c.PostForm("type")
+	if t == "upload" {
+		err := service.CourseExist(video.CourseID)
+		if err != nil {
+			response.FailWithMessage("课程id不存在", c)
+			return
+		}
 
-	os.RemoveAll(video.Path)
-	video.VideoName, video.Format, err = uploadFile(video.Path, c)
-	if err != nil {
-		response.FailWithMessage(fmt.Sprintf("%v", err), c)
+		os.RemoveAll(video.Path)
+		video.VideoName, video.Format, err = uploadFile(video.Path, c)
+		if err != nil {
+			response.FailWithMessage(fmt.Sprintf("%v", err), c)
+		}
+		if err = service.SaveVideo(video); err != nil {
+			response.FailWithMessage(fmt.Sprintf("%v", err), c)
+		}
+		response.OkWithMessage("upload success", c)
+		global.UPLOADQUEUE <- fmt.Sprintf("%v", video.ID)
+	} else {
+		name := c.PostForm("name")
+		introduction := c.PostForm("introduction")
+		tempID := c.PostForm("id") 
 	}
-	if err = service.SaveVideo(video); err != nil {
-		response.FailWithMessage(fmt.Sprintf("%v", err), c)
-	}
-	response.OkWithMessage("upload success", c)
-	global.UPLOADQUEUE <- fmt.Sprintf("%v", video.ID)
 }
 
 func readFormData(c *gin.Context) *entity.Video {
@@ -67,6 +74,7 @@ func DeleteVideo(c *gin.Context) {
 	if err := c.BindJSON(&id); err == nil {
 		if err := service.DropVideo(id.ID); err != nil {
 			response.FailWithMessage(fmt.Sprintf("%v", err), c)
+			return
 		}
 		response.OkWithMessage("delete success", c)
 	} else {
