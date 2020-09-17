@@ -17,8 +17,8 @@ func uploadFile(filePath string, c *gin.Context) (string, string, error) {
 	}
 	os.MkdirAll(filePath, os.ModePerm)
 	_, suf := getFileInfo(file.Filename)
-	fileName := fmt.Sprintf("%d.%s", time.Now().Unix(), suf)
-	if err := c.SaveUploadedFile(file, filePath+fileName); err != nil {
+	fileName := fmt.Sprintf("%d", time.Now().Unix())
+	if err := c.SaveUploadedFile(file, filePath+fileName+suf); err != nil {
 		return "", "", err
 	}
 

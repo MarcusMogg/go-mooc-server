@@ -127,7 +127,7 @@ func UpdateAvatar(c *gin.Context) {
 	if err != nil {
 		response.FailWithMessage(fmt.Sprintf("%v", err), c)
 	}
-	user.Avatar = fmt.Sprintf("%s%s.%s", savePath, fileName, suf)
+	user.Avatar = fmt.Sprintf("%s%s%s", savePath, fileName, suf)
 	if err = service.UpdateUser(user); err == nil {
 		response.Ok(c)
 	} else {

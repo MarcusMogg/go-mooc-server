@@ -14,7 +14,9 @@ type Course struct {
 
 // CourseStudents 加入课程的学生
 type CourseStudents struct {
-	StudentID uint   `gorm:"primaryKey;autoIncrement:false" json:"-"`
-	CourseID  uint   `gorm:"primaryKey;autoIncrement:false" json:"cid"`
-	WatchTime uint64 `json:"watchtime"`
+	StudentID uint      `gorm:"primaryKey;autoIncrement:false" json:"-"`
+	CourseID  uint      `gorm:"primaryKey;autoIncrement:false" json:"cid"`
+	WatchTime uint64    `json:"watchtime"`
+	Status    uint      `json:"-"` // 0 申请中 1 已加入
+	Auth      TopicAuth `json:"-"`
 }

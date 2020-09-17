@@ -31,6 +31,73 @@ func CourseAuth() gin.HandlerFunc {
 				}
 			} else {
 				response.FailWithMessage("课程id不存在", c)
+				c.Abort()
+				return
+			}
+		}
+		response.FailWithMessage("不属于课程", c)
+		c.Abort()
+	}
+}
+
+// CourseTeacherAuth 中间件判断用户是否是创建课程的老师
+// 需要先调用JWTAuth中间件
+// 传入参数必须包含CourseIDReq
+func CourseTeacherAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		claim, ok := c.Get("user")
+		if !ok {
+			response.FailWithMessage("未通过jwt认证", c)
+			c.Abort()
+			return
+		}
+		user := claim.(*entity.MUser)
+		var cid request.CourseIDReq
+		if err := c.BindJSON(&cid); err == nil {
+			if err := service.CourseExist(cid.ID); err == nil {
+				if err = service.CheckCourseAuth(cid.ID, user.ID, global.GDB); err == nil {
+					c.Next()
+					return
+				}
+			} else {
+				response.FailWithMessage("课程id不存在", c)
+				c.Abort()
+				return
+			}
+		}
+		response.FailWithMessage("不属于课程", c)
+		c.Abort()
+	}
+}
+
+// TopicAuth 中间件判断用户是否有论坛权限
+// 需要先调用JWTAuth中间件
+// 传入参数必须包含CourseIDReq
+func TopicAuth(auth entity.TopicAuth) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		claim, ok := c.Get("user")
+		if !ok {
+			response.FailWithMessage("未通过jwt认证", c)
+			c.Abort()
+			return
+		}
+		user := claim.(*entity.MUser)
+		var cid request.CourseIDReq
+		if err := c.BindJSON(&cid); err == nil {
+			if err := service.CourseExist(cid.ID); err == nil {
+				res := service.GetStudentAuth(user.ID, cid.ID)
+				if entity.CheckTopicAuth(res, auth) {
+					c.Next()
+					return
+				} else {
+					response.FailWithMessage("权限不足", c)
+					c.Abort()
+					return
+				}
+			} else {
+				response.FailWithMessage("课程id不存在", c)
+				c.Abort()
+				return
 			}
 		}
 		response.FailWithMessage("不属于课程", c)

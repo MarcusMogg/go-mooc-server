@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"net/http"
 	"server/global"
 	"server/model/entity"
 	"server/model/request"
@@ -15,27 +16,39 @@ import (
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
 }
 
 // AloneWS 用户单独websocket连接
 func AloneWS(c *gin.Context) {
-	claim, ok := c.Get("user")
-	if !ok {
-		response.FailWithMessage("未通过jwt认证", c)
-		return
-	}
-	user := claim.(*entity.MUser)
 	ws, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		response.FailWithMessage("创建websocket连接失败", c)
 		return
 	}
+	var msg request.ChatMsgReq
+	err = ws.ReadJSON(&msg)
+	if err != nil {
+		fmt.Println("chat/alonews:", err)
+		ws.Close()
+		return
+	}
+	var user *entity.MUser
+	if msg.CMRType == request.USERID {
+		user = service.GetUserInfoByID(msg.ToID)
+	} else {
+		fmt.Println("chat/alonews:没有连接")
+		ws.Close()
+		return
+	}
+	// 用户连接时注册到CLIENTS里
 	defer func() {
 		// 用户退出时删除
 		global.CLIENTS.Delete(user.ID)
 		ws.Close()
 	}()
-	// 用户连接时注册到CLIENTS里
 	global.CLIENTS.Store(user.ID, ws)
 	for {
 		var msg request.ChatMsgReq

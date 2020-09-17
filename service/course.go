@@ -18,6 +18,8 @@ func InsertCourse(c *entity.Course, uid uint) error {
 			CourseID:  c.ID,
 			StudentID: uid,
 			WatchTime: 0,
+			Status:    1,
+			Auth:      entity.POST | entity.TOP | entity.IMPORTANT | entity.DELETE | entity.APPROVE,
 		}
 		return tx.Create(&cs).Error
 	})
@@ -96,30 +98,6 @@ func GetVideoByVideoID(vid uint) *entity.Video {
 	return &v
 }
 
-// InsertStudent 添加学生
-func InsertStudent(cid uint, name string) error {
-	return global.GDB.Transaction(func(tx *gorm.DB) error {
-		var uid uint
-		tx.Model(&entity.MUser{}).Select("id").Where("user_name = ?", name).Scan(&uid)
-		if uid == 0 {
-			return errors.New("查无此人")
-		}
-		cs := entity.CourseStudents{
-			CourseID:  cid,
-			StudentID: uid,
-			WatchTime: 0,
-		}
-		return tx.Create(&cs).Error
-	})
-}
-
-// GetStudents 获取学生列表
-func GetStudents(cid uint) []entity.MUser {
-	var users []entity.MUser
-	global.GDB.Table("m_users").Joins("JOIN course_students ON m_users.ID = course_students.StudentID").Where("course_students.course_id = ?", cid).Find(&users)
-	return users
-}
-
 // AddWatchTime 增加学生观看市场
 func AddWatchTime(cs *entity.CourseStudents) {
 	global.GDB.Model(cs).Update("watch_time", gorm.Expr("watch_time + ?", cs.WatchTime))
@@ -149,4 +127,53 @@ func DropCourse(id uint, uid uint) error {
 		}
 		return nil
 	})
+}
+
+// InsertStudent 添加学生
+func InsertStudent(cid uint, name string, status uint) error {
+	return global.GDB.Transaction(func(tx *gorm.DB) error {
+		var uid uint
+		tx.Model(&entity.MUser{}).Select("id").Where("user_name = ?", name).Scan(&uid)
+		if uid == 0 {
+			return errors.New("查无此人")
+		}
+		cs := entity.CourseStudents{
+			CourseID:  cid,
+			StudentID: uid,
+			WatchTime: 0,
+			Status:    status,
+			Auth:      entity.POST,
+		}
+		return tx.Create(&cs).Error
+	})
+}
+
+// GetStudents 获取学生列表
+func GetStudents(cid, status uint) []entity.MUser {
+	var users []entity.MUser
+	global.GDB.Table("m_users").Joins("JOIN course_students ON m_users.ID = course_students.StudentID").
+		Where("course_students.course_id = ? AND course_students.status = ?", cid, status).Find(&users)
+	return users
+}
+
+// UpdateStudentStatus 更新学生状态
+func UpdateStudentStatus(uid, cid, status uint) {
+	global.GDB.Model(&entity.CourseStudents{}).Where("student_id = ? AND course_id = ?", uid, cid).Update("status", status)
+}
+
+// DeleteStudent 删除学生
+func DeleteStudent(uid, cid uint) {
+	global.GDB.Where("student_id = ? AND course_id = ?", uid, cid).Delete(&entity.CourseStudents{})
+}
+
+// GetStudentAuth 获取学生权限
+func GetStudentAuth(uid, cid uint) entity.TopicAuth {
+	var res entity.TopicAuth
+	global.GDB.Model(&entity.CourseStudents{}).Select("auth").Where("student_id = ? AND course_id = ?", uid, cid).Scan(&res)
+	return res
+}
+
+// SetStudentAuth 设置学生权限
+func SetStudentAuth(uid, cid uint, auth entity.TopicAuth) {
+	global.GDB.Model(&entity.CourseStudents{}).Where("student_id = ? AND course_id = ?", uid, cid).Update("auth", auth)
 }

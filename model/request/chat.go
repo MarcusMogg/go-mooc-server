@@ -8,6 +8,8 @@ const (
 	SENDMSG CMRType = iota + 1
 	// ACKMSG 确认收到消息
 	ACKMSG
+	// USERID  确认用户
+	USERID
 )
 
 // ChatMsgReq 单独聊天时发送的请求
