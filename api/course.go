@@ -142,37 +142,6 @@ func ModifyVideoList() {
 
 }
 
-// AddStudents 批量添加学生
-func AddStudents(c *gin.Context) {
-	var as request.AddStudentsReq
-	if err := c.BindJSON(&as); err == nil {
-		var errs []string
-		for _, i := range as.UserNames {
-			if err = service.InsertStudent(as.ID, i); err != nil {
-				errs = append(errs, i)
-			}
-		}
-		if len(errs) != 0 {
-			response.FailDetailed(response.ERROR, errs, "用户名错误", c)
-		} else {
-			response.Ok(c)
-		}
-	} else {
-		response.FailValidate(c)
-	}
-}
-
-// GetStudents 获取用户列表
-func GetStudents(c *gin.Context) {
-	var id request.GetByID
-	if err := c.BindJSON(&id); err == nil {
-		var user []entity.MUser = service.GetStudents(id.ID)
-		response.OkWithData(user, c)
-	} else {
-		response.FailValidate(c)
-	}
-}
-
 // AddWacthTime 增加学生学习时长
 func AddWacthTime(c *gin.Context) {
 	claim, ok := c.Get("user")

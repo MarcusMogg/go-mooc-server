@@ -23,8 +23,6 @@ const (
 	MReply
 	// MLike 点赞
 	MLike
-	// MFriendReq 好友申请
-	MFriendReq
 )
 
 // ChatMessage 消息数据库

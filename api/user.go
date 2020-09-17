@@ -7,6 +7,7 @@ import (
 	"server/model/request"
 	"server/model/response"
 	"server/service"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -79,6 +80,17 @@ func GetUserInfo(c *gin.Context) {
 	response.OkWithData(user, c)
 }
 
+// GetUserInfoByID 获取指定用户信息
+func GetUserInfoByID(c *gin.Context) {
+	id, err := strconv.Atoi(c.Query("id"))
+	if err != nil {
+		response.FailWithMessage("参数错误", c)
+		return
+	}
+	u := service.GetUserInfoByID(uint(id))
+	response.OkWithData(u, c)
+}
+
 // UpdateUserInfo 获取用户信息
 func UpdateUserInfo(c *gin.Context) {
 	claim, ok := c.Get("user")
@@ -91,6 +103,7 @@ func UpdateUserInfo(c *gin.Context) {
 	if err := c.BindJSON(&ur); err == nil {
 		user.NickName = ur.NickName
 		user.Email = ur.Email
+		user.Description = ur.Description
 		if err = service.UpdateUser(user); err == nil {
 			response.Ok(c)
 		} else {
@@ -99,4 +112,66 @@ func UpdateUserInfo(c *gin.Context) {
 	} else {
 		response.FailValidate(c)
 	}
+}
+
+// UpdateAvatar 上传头像
+func UpdateAvatar(c *gin.Context) {
+	claim, ok := c.Get("user")
+	if !ok {
+		response.FailWithMessage("未通过jwt认证", c)
+		return
+	}
+	user := claim.(*entity.MUser)
+	savePath := "source/avator/" + fmt.Sprintf("%d/", user.ID)
+	fileName, suf, err := uploadFile(savePath, c)
+	if err != nil {
+		response.FailWithMessage(fmt.Sprintf("%v", err), c)
+	}
+	user.Avatar = fmt.Sprintf("%s%s%s", savePath, fileName, suf)
+	if err = service.UpdateUser(user); err == nil {
+		response.Ok(c)
+	} else {
+		response.FailWithMessage(err.Error(), c)
+	}
+}
+
+// WatchUser 关注一个用户
+func WatchUser(c *gin.Context) {
+	claim, ok := c.Get("user")
+	if !ok {
+		response.FailWithMessage("未通过jwt认证", c)
+		return
+	}
+	user := claim.(*entity.MUser)
+	var id request.GetByID
+	if err := c.BindJSON(&id); err == nil {
+		service.InsertWatchRecord(user.ID, id.ID)
+		response.Ok(c)
+	} else {
+		response.FailValidate(c)
+	}
+}
+
+// WhoWatchI 关注我的用户
+func WhoWatchI(c *gin.Context) {
+	claim, ok := c.Get("user")
+	if !ok {
+		response.FailWithMessage("未通过jwt认证", c)
+		return
+	}
+	user := claim.(*entity.MUser)
+	res := service.GetWhoWatchI(user.ID)
+	response.OkWithData(res, c)
+}
+
+// IWatchWho 关注我的用户
+func IWatchWho(c *gin.Context) {
+	claim, ok := c.Get("user")
+	if !ok {
+		response.FailWithMessage("未通过jwt认证", c)
+		return
+	}
+	user := claim.(*entity.MUser)
+	res := service.GetIWatchWho(user.ID)
+	response.OkWithData(res, c)
 }
