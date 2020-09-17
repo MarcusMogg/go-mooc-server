@@ -101,10 +101,10 @@ func sendMessage(from, to uint, msg string, tp entity.MsgType) {
 	service.InsertMessage(&msgentity)
 	if ok {
 		msgreq := response.ChatMsgResp{
-			FromID:   from,
-			SendTime: msgentity.CreatedAt,
-			Msg:      msg,
-			MType:    tp,
+			FromID:      from,
+			SendTimeStr: msgentity.CreatedAt.Format(global.TimeTemplateSec),
+			Msg:         msg,
+			MType:       tp,
 		}
 		err := (tows.(*websocket.Conn)).WriteJSON(msgreq)
 		fmt.Println("chat/sendmessage:", err)

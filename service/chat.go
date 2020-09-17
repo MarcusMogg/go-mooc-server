@@ -26,27 +26,30 @@ func GetUnreadMsg(id uint) []response.UnreadMsgResp {
 	var res []response.UnreadMsgResp
 	global.GDB.Transaction(func(tx *gorm.DB) error {
 		var tmp []response.ChatMsgResp
-		err := global.GDB.Model(&entity.ChatMessage{}).Select("from_id, created_at,msg,m_type").
-			Order("from_id").Where("to_id = ?", id).Scan(&tmp).Error
+		err := tx.Model(&entity.ChatMessage{}).Select("from_id,to_id,created_at,msg,m_type").
+			Where("to_id = ? OR from_id = ?", id, id).Scan(&tmp).Error
 		if err != nil {
 			return err
 		}
-
-		cur := -1
-		for i, j := range tmp {
-			if i == 0 || j.FromID != tmp[i-1].FromID {
-				result := global.GDB.Model(&entity.ChatMessage{}).
-					Where("status = ? AND from_id = ? AND to_id = ?", false, j.FromID, id)
-				if result.Error != nil {
-					return result.Error
-				}
-				res = append(res, response.UnreadMsgResp{
-					FromID: j.FromID,
-					Num:    result.RowsAffected,
-				})
-				cur++
+		var rm map[uint]([]response.ChatMsgResp) = make(map[uint]([]response.ChatMsgResp))
+		for _, j := range tmp {
+			if j.FromID == id {
+				rm[j.ToID] = append(rm[j.ToID], j)
+			} else {
+				rm[j.FromID] = append(rm[j.FromID], j)
 			}
-			res[cur].Msg = append(res[cur].Msg, j)
+		}
+		for i, j := range rm {
+			result := global.GDB.Model(&entity.ChatMessage{}).
+				Where("status = ? AND from_id = ? AND to_id = ?", false, i, id)
+			for k := range j {
+				j[k].SendTimeStr = j[k].SendTime.Format(global.TimeTemplateSec)
+			}
+			res = append(res, response.UnreadMsgResp{
+				FromID: i,
+				Num:    result.RowsAffected,
+				Msg:    j,
+			})
 		}
 		return nil
 	})

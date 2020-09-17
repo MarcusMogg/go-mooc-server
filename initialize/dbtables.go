@@ -24,4 +24,5 @@ func DBTables() {
 	global.GDB.AutoMigrate(&entity.WatchList{})
 	global.GDB.AutoMigrate(&entity.Topic{})
 	global.GDB.AutoMigrate(&entity.Post{})
+	global.GDB.AutoMigrate(&entity.UserLike{})
 }

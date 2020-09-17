@@ -1,6 +1,9 @@
 package middleware
 
 import (
+	"bytes"
+	"encoding/json"
+	"io/ioutil"
 	"server/global"
 	"server/model/entity"
 	"server/model/request"
@@ -22,17 +25,20 @@ func CourseAuth() gin.HandlerFunc {
 			return
 		}
 		user := claim.(*entity.MUser)
-		var cid request.CourseIDReq
-		if err := c.BindJSON(&cid); err == nil {
-			if err := service.CourseExist(cid.ID); err == nil {
-				if err = service.CheckCourseStudentAuth(cid.ID, user.ID, global.GDB); err == nil {
-					c.Next()
+		if data, err := c.GetRawData(); err == nil {
+			var cid request.CourseIDReq
+			if err := json.Unmarshal(data, &cid); err == nil {
+				if err := service.CourseExist(cid.ID); err == nil {
+					if err = service.CheckCourseStudentAuth(cid.ID, user.ID, global.GDB); err == nil {
+						c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+						c.Next()
+						return
+					}
+				} else {
+					response.FailWithMessage("课程id不存在", c)
+					c.Abort()
 					return
 				}
-			} else {
-				response.FailWithMessage("课程id不存在", c)
-				c.Abort()
-				return
 			}
 		}
 		response.FailWithMessage("不属于课程", c)
@@ -52,17 +58,20 @@ func CourseTeacherAuth() gin.HandlerFunc {
 			return
 		}
 		user := claim.(*entity.MUser)
-		var cid request.CourseIDReq
-		if err := c.BindJSON(&cid); err == nil {
-			if err := service.CourseExist(cid.ID); err == nil {
-				if err = service.CheckCourseAuth(cid.ID, user.ID, global.GDB); err == nil {
-					c.Next()
+		if data, err := c.GetRawData(); err == nil {
+			var cid request.CourseIDReq
+			if err := json.Unmarshal(data, &cid); err == nil {
+				if err := service.CourseExist(cid.ID); err == nil {
+					if err = service.CheckCourseAuth(cid.ID, user.ID, global.GDB); err == nil {
+						c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+						c.Next()
+						return
+					}
+				} else {
+					response.FailWithMessage("课程id不存在", c)
+					c.Abort()
 					return
 				}
-			} else {
-				response.FailWithMessage("课程id不存在", c)
-				c.Abort()
-				return
 			}
 		}
 		response.FailWithMessage("不属于课程", c)
@@ -82,22 +91,25 @@ func TopicAuth(auth entity.TopicAuth) gin.HandlerFunc {
 			return
 		}
 		user := claim.(*entity.MUser)
-		var cid request.CourseIDReq
-		if err := c.BindJSON(&cid); err == nil {
-			if err := service.CourseExist(cid.ID); err == nil {
-				res := service.GetStudentAuth(user.ID, cid.ID)
-				if entity.CheckTopicAuth(res, auth) {
-					c.Next()
-					return
+		if data, err := c.GetRawData(); err == nil {
+			var cid request.CourseIDReq
+			if err := json.Unmarshal(data, &cid); err == nil {
+				if err := service.CourseExist(cid.ID); err == nil {
+					res := service.GetStudentAuth(user.ID, cid.ID)
+					if entity.CheckTopicAuth(res, auth) {
+						c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+						c.Next()
+						return
+					} else {
+						response.FailWithMessage("权限不足", c)
+						c.Abort()
+						return
+					}
 				} else {
-					response.FailWithMessage("权限不足", c)
+					response.FailWithMessage("课程id不存在", c)
 					c.Abort()
 					return
 				}
-			} else {
-				response.FailWithMessage("课程id不存在", c)
-				c.Abort()
-				return
 			}
 		}
 		response.FailWithMessage("不属于课程", c)

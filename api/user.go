@@ -19,10 +19,17 @@ import (
 func Register(c *gin.Context) {
 	var r request.RegisterData
 	if err := c.BindJSON(&r); err == nil {
-		user := &entity.MUser{UserName: r.UserName, Email: r.Email, Password: r.Password, Role: entity.Student}
+		user := &entity.MUser{
+			UserName: r.UserName,
+			Email:    r.Email,
+			Password: r.Password,
+			Role:     entity.Student,
+			NickName: r.UserName,
+		}
 
 		if err = service.Register(user); err == nil {
 			response.OkWithMessage("注册成功", c)
+			sendMessage(0, user.ID, "hello world!", entity.MBroadcast)
 		} else {
 			response.FailWithMessage(fmt.Sprintf("%v", err), c)
 		}

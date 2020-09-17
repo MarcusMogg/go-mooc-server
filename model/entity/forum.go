@@ -9,6 +9,7 @@ type Topic struct {
 	gorm.Model
 	UserID    uint
 	CID       uint `gorm:"not null"` //关联的课程ID
+	Num       uint // 主题的帖子数量
 	Title     string
 	Top       bool // 置顶
 	Important bool // 加精
@@ -21,6 +22,7 @@ type Post struct {
 	UserID   uint
 	ReplyFor uint
 	Msg      string
+	Num      uint // 点赞数量
 }
 
 // TopicAuth 权限
@@ -47,4 +49,10 @@ func CheckTopicAuth(auth, target TopicAuth) bool {
 // SetTopicAuth 设置相应权限
 func SetTopicAuth(auth, target TopicAuth) TopicAuth {
 	return auth | target
+}
+
+// UserLike 用户点赞记录
+type UserLike struct {
+	UID uint `gorm:"primaryKey;autoIncrement:false"`
+	PID uint `gorm:"primaryKey;autoIncrement:false"`
 }

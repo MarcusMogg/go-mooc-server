@@ -19,6 +19,7 @@ type TopicReq struct {
 type CommonTopicReq struct {
 	CourseIDReq
 	GetByID
+	Status bool
 }
 
 // GetTopicsReq 获取主题列表
