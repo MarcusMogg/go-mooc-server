@@ -18,7 +18,7 @@ func InitUserRouter(Router *gin.RouterGroup) {
 		UserRouter.POST("apply", middleware.JWTAuth(), api.Apply)
 		UserRouter.POST("agree", middleware.JWTAuth(), middleware.RoleAuth(entity.Admin), api.AgreeApply)
 		UserRouter.GET("info", middleware.JWTAuth(), api.GetUserInfo)
-		UserRouter.GET("userinfo", middleware.JWTAuth(), api.GetUserInfo)
+		UserRouter.GET("userinfo", api.GetUserInfoByID)
 		UserRouter.POST("update", middleware.JWTAuth(), api.UpdateUserInfo)
 		UserRouter.POST("avatar", middleware.JWTAuth(), api.UpdateAvatar)
 

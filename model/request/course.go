@@ -6,7 +6,7 @@ import (
 
 // CourseIDReq 课程ID
 type CourseIDReq struct {
-	ID uint `json:"cid" form:"cid"`
+	ID uint `json:"cid" form:"cid" binding:"required"`
 }
 
 // CourseReq 创建课程申请
