@@ -5,6 +5,7 @@ import (
 	"os"
 	"server/global"
 	"server/model/entity"
+	"server/model/request"
 	"server/model/response"
 	"server/service"
 	"strconv"
@@ -29,7 +30,7 @@ func Upload(c *gin.Context) {
 	if err := uploadFile(video.Path, c); err != nil {
 		response.FailWithMessage(fmt.Sprintf("%v", err), c)
 	}
-	response.OkWithMessage("视频上传成功", c)
+	response.OkWithMessage("upload success", c)
 	global.UPLOADQUEUE <- fmt.Sprintf("%v", video.ID)
 }
 
@@ -49,11 +50,29 @@ func readFormData(c *gin.Context) *entity.Video {
 	name := c.PostForm("name")
 	video.Name = name
 
-	ins := c.PostForm("ins")
-	video.Introduction = ins
+	introduction := c.PostForm("introduction")
+	video.Introduction = introduction
 
 	file, _ := c.FormFile("file")
 	video.VideoName, video.Format = getFileInfo(file.Filename)
 
 	return video
+}
+
+// DeleteVideo 删除视频
+func DeleteVideo(c *gin.Context) {
+	_, ok := c.Get("user")
+	if !ok {
+		response.FailWithMessage("未通过jwt认证", c)
+		return
+	}
+	var id request.GetByID
+	if err := c.BindJSON(&id); err == nil {
+		if err := service.DropVideo(id.ID); err != nil {
+			response.FailWithMessage(fmt.Sprintf("%v", err), c)
+		}
+		response.OkWithMessage("delete success", c)
+	} else {
+		response.FailValidate(c)
+	}
 }

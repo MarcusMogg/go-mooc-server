@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"server/global"
 	"server/model/entity"
@@ -22,6 +23,22 @@ func SaveVideo(v *entity.Video) error {
 		copyVideoInfo(&tmp, v)
 		tx.Save(&tmp)
 		v.ID = tmp.ID
+		return nil
+	})
+}
+
+// DropVideo 删除视频
+func DropVideo(vid uint) error {
+	return global.GDB.Transaction(func(tx *gorm.DB) error {
+		var v entity.Video
+		err := tx.Where("id = ?", vid).First(&v).Error
+		if err != nil {
+			return err
+		}
+		os.RemoveAll(v.Path)
+		if err := tx.Delete(&v).Error; err != nil {
+			return err
+		}
 		return nil
 	})
 }

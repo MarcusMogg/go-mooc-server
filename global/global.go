@@ -22,6 +22,8 @@ var (
 	UPLOADQUEUE chan string
 	// CLIENTS 用户套接字
 	CLIENTS sync.Map
+	// LIVECLIENTS 直播间套接字
+	LIVECLIENTS sync.Map
 )
 
 // TimeTemplateDay 时间转换模板，到天

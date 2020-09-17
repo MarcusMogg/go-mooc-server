@@ -22,4 +22,5 @@ func DBTables() {
 	global.GDB.AutoMigrate(&entity.ChatMessage{})
 	global.GDB.AutoMigrate(&entity.FriendRequest{})
 	global.GDB.AutoMigrate(&entity.UserFriend{})
+	global.GDB.AutoMigrate(&entity.Live{})
 }
