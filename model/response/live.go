@@ -14,10 +14,12 @@ const (
 	ETR
 	// PTS 推流请求应答
 	PTS
-	// SPTS 学生请求推流
+	// SPTS 学生举手应答
 	SPTS
 	// STOP 结束推流
 	STOP
+	// SSP 结束学生推流
+	SSP
 )
 
 // EnterRoom 进入直播间返回消息
@@ -43,6 +45,11 @@ type StudentPushStream struct {
 	Type  LiveResType `json:"type"`
 	UID   uint        `json:"uid"`
 	UName string      `json:"uname"`
+}
+
+// StopStudent 停止学生推流
+type StopStudent struct {
+	Type LiveResType `json:"type"`
 }
 
 // EnterRoomList 消息列表

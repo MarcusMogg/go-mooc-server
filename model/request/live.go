@@ -10,10 +10,16 @@ const (
 	CTR
 	// PST 推流请求
 	PST
+	// SPST 学生转为老师推流
+	SPST
 	// TPST 老师对学生提问的应答
 	TPST
 	// STOP 结束推流
 	STOP
+	// SSP 结束学生推流
+	SSP
+	// SSPED 学生已结束推流
+	SSPED
 )
 
 // LiveReq 直播信息
@@ -46,13 +52,10 @@ type ControlData struct {
 	TPermit TeacherPermit
 }
 
-// IDData ID信息
-type IDData struct {
-}
-
 // ChatData 消息主体
 type ChatData struct {
 	Text TextBody
+	Type uint   `json:"type"`
 	Mine bool   `json:"mine"`
 	Name string `json:"name"`
 	Img  string `json:"img"`
