@@ -11,5 +11,6 @@ func InitLiveRouter(Router *gin.RouterGroup) {
 	LiveRouter := Router.Group("live")
 	{
 		LiveRouter.GET("ws", api.LiveWS)
+		LiveRouter.POST("key", api.GetUserSig)
 	}
 }

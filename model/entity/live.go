@@ -29,7 +29,6 @@ func (c *SafeMap) AddSocket(liveID uint, uid uint, conn *websocket.Conn) {
 	c.mux.Lock()
 	if c.Rooms[liveID] == nil {
 		c.Rooms[liveID] = map[uint]*websocket.Conn{uid: conn}
-		c.Rooms[liveID][uid] = conn
 	} else {
 		c.Rooms[liveID][uid] = conn
 	}
@@ -54,5 +53,3 @@ func (c *SafeMap) DropLive(liveID uint) {
 func (c *SafeMap) Init() {
 	c.Rooms = make(map[uint]map[uint]*websocket.Conn)
 }
-
-

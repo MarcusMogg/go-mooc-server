@@ -227,5 +227,5 @@ func genSig(sdkappid int, key string, identifier string, expire int, userbuf []b
 	w := zlib.NewWriter(&b)
 	w.Write(data)
 	w.Close()
-	return base64.StdEncoding.EncodeToString(b.Bytes()), nil
+	return base64urlEncode(b.Bytes()), nil
 }

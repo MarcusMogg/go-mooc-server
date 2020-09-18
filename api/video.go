@@ -34,10 +34,12 @@ func Upload(c *gin.Context) {
 		}
 		response.OkWithMessage("upload success", c)
 		global.UPLOADQUEUE <- fmt.Sprintf("%v", video.ID)
-	} else {
-		name := c.PostForm("name")
-		introduction := c.PostForm("introduction")
-		tempID := c.PostForm("id") 
+	} else if t == "edit" {
+		if err := service.ModifyVideo(video); err != nil {
+			response.FailWithMessage(fmt.Sprintf("%v", err), c)
+			return
+		}
+		response.OkWithMessage("modify success", c)
 	}
 }
 

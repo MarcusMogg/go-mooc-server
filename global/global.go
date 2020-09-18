@@ -3,6 +3,7 @@ package global
 import (
 	"server/config"
 	"server/model/entity"
+	"server/model/response"
 	"sync"
 
 	"github.com/spf13/viper"
@@ -27,7 +28,8 @@ var (
 	LIVECLIENTS entity.SafeMap
 	// TEACHERS 每个直播间的老师
 	TEACHERS sync.Map
-	// LIVE
+	// LIVEROOMS 每个直播间的人员
+	LIVEROOMS response.SafeERMap
 )
 
 // TimeTemplateDay 时间转换模板，到天

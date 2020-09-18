@@ -27,6 +27,21 @@ func SaveVideo(v *entity.Video) error {
 	})
 }
 
+// ModifyVideo 修改视频信息
+func ModifyVideo(v *entity.Video) error {
+	var tmp entity.Video
+	return global.GDB.Transaction(func(tx *gorm.DB) error {
+		result := tx.Where("course_id = ? AND seq = ?", v.CourseID, v.Seq).First(&tmp)
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return result.Error
+		}
+		tmp.Name = v.Name
+		tmp.Introduction = v.Introduction
+		tx.Save(&tmp)
+		return nil
+	})
+}
+
 // DropVideo 删除视频
 func DropVideo(vid uint) error {
 	return global.GDB.Transaction(func(tx *gorm.DB) error {
