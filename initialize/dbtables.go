@@ -20,6 +20,7 @@ func DBTables() {
 	global.GDB.AutoMigrate(&entity.Course{})
 	global.GDB.AutoMigrate(&entity.CourseStudents{})
 	global.GDB.AutoMigrate(&entity.ChatMessage{})
+	global.GDB.AutoMigrate(&entity.Live{})
 	global.GDB.AutoMigrate(&entity.WatchList{})
 	global.GDB.AutoMigrate(&entity.Topic{})
 	global.GDB.AutoMigrate(&entity.Post{})

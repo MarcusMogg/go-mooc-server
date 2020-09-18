@@ -32,4 +32,6 @@ func init() {
 
 	global.GVP = v
 	global.UPLOADQUEUE = make(chan string, global.MaxVideoNum)
+	global.LIVECLIENTS.Init()
+	global.LIVEROOMS.Init()
 }

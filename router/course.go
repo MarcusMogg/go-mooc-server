@@ -22,7 +22,11 @@ func InitCourseRouter(Router *gin.RouterGroup) {
 		UserRouter.POST("getvideo", api.ReadVideo)
 
 		UserRouter.POST("addwatchtime", middleware.JWTAuth(), api.AddWacthTime)
+		UserRouter.POST("createlive", middleware.JWTAuth(), middleware.RoleAuth(entity.Teacher), api.CreateLive)
+		UserRouter.POST("getlivelist", api.ReadLiveList)
+		UserRouter.POST("getlive", api.ReadLive)
 		UserRouter.GET("getwatchtime", middleware.JWTAuth(), api.GetWatchTimeList)
+		UserRouter.POST("deletevideo", middleware.JWTAuth(), middleware.RoleAuth(entity.Teacher), api.DeleteVideo)
 
 		UserRouter.DELETE("delete", middleware.JWTAuth(), middleware.RoleAuth(entity.Teacher), api.DeleteCourse)
 

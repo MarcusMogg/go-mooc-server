@@ -110,3 +110,4 @@ func sendMessage(from, to uint, msg string, tp entity.MsgType) {
 		fmt.Println("chat/sendmessage:", err)
 	}
 }
+

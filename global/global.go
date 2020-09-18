@@ -2,6 +2,8 @@ package global
 
 import (
 	"server/config"
+	"server/model/entity"
+	"server/model/response"
 	"sync"
 
 	"github.com/spf13/viper"
@@ -22,6 +24,12 @@ var (
 	UPLOADQUEUE chan string
 	// CLIENTS 用户套接字
 	CLIENTS sync.Map
+	// LIVECLIENTS 直播间套接字
+	LIVECLIENTS entity.SafeMap
+	// TEACHERS 每个直播间的老师
+	TEACHERS sync.Map
+	// LIVEROOMS 每个直播间的人员
+	LIVEROOMS response.SafeERMap
 )
 
 // TimeTemplateDay 时间转换模板，到天

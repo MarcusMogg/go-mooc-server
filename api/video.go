@@ -5,6 +5,7 @@ import (
 	"os"
 	"server/global"
 	"server/model/entity"
+	"server/model/request"
 	"server/model/response"
 	"server/service"
 	"strconv"
@@ -15,23 +16,31 @@ import (
 // Upload 上传文件
 func Upload(c *gin.Context) {
 	video := readFormData(c)
-	err := service.CourseExist(video.CourseID)
-	if err != nil {
-		response.FailWithMessage("课程id不存在", c)
-		return
-	}
+	t := c.PostForm("type")
+	if t == "upload" {
+		err := service.CourseExist(video.CourseID)
+		if err != nil {
+			response.FailWithMessage("课程id不存在", c)
+			return
+		}
 
-	os.RemoveAll(video.Path)
-	video.VideoName, video.Format, err = uploadFile(video.Path, c)
-	if err != nil {
-		response.FailWithMessage(fmt.Sprintf("%v", err), c)
+		os.RemoveAll(video.Path)
+		video.VideoName, video.Format, err = uploadFile(video.Path, c)
+		if err != nil {
+			response.FailWithMessage(fmt.Sprintf("%v", err), c)
+		}
+		if err = service.SaveVideo(video); err != nil {
+			response.FailWithMessage(fmt.Sprintf("%v", err), c)
+		}
+		response.OkWithMessage("upload success", c)
+		global.UPLOADQUEUE <- fmt.Sprintf("%v", video.ID)
+	} else if t == "edit" {
+		if err := service.ModifyVideo(video); err != nil {
+			response.FailWithMessage(fmt.Sprintf("%v", err), c)
+			return
+		}
+		response.OkWithMessage("modify success", c)
 	}
-	if err = service.SaveVideo(video); err != nil {
-		response.FailWithMessage(fmt.Sprintf("%v", err), c)
-	}
-
-	response.OkWithMessage("视频上传成功", c)
-	global.UPLOADQUEUE <- fmt.Sprintf("%v", video.ID)
 }
 
 func readFormData(c *gin.Context) *entity.Video {
@@ -50,8 +59,27 @@ func readFormData(c *gin.Context) *entity.Video {
 	name := c.PostForm("name")
 	video.Name = name
 
-	ins := c.PostForm("ins")
-	video.Introduction = ins
+	introduction := c.PostForm("introduction")
+	video.Introduction = introduction
 
 	return video
+}
+
+// DeleteVideo 删除视频
+func DeleteVideo(c *gin.Context) {
+	_, ok := c.Get("user")
+	if !ok {
+		response.FailWithMessage("未通过jwt认证", c)
+		return
+	}
+	var id request.GetByID
+	if err := c.BindJSON(&id); err == nil {
+		if err := service.DropVideo(id.ID); err != nil {
+			response.FailWithMessage(fmt.Sprintf("%v", err), c)
+			return
+		}
+		response.OkWithMessage("delete success", c)
+	} else {
+		response.FailValidate(c)
+	}
 }

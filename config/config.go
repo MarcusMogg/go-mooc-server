@@ -4,6 +4,7 @@ package config
 type Config struct {
 	AesKey string `mapstructure:"asekey" json:"asekey" yaml:"asekey"`
 	JWTKey string `mapstructure:"jwtkey" json:"jwtkey" yaml:"jwtkey"`
+	APIKey string `mapstructure:"apikey" json:"apikey" yaml:"apikey"`
 	Mysql  Mysql  `mapstructure:"mysql" json:"mysql" yaml:"mysql"`
 	Addr   int    `mapstructure:"addr" json:"addr" yaml:"addr"`
 }
