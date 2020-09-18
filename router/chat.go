@@ -14,5 +14,6 @@ func InitChatRouter(Router *gin.RouterGroup) {
 		ChatRouter.GET("ws", api.AloneWS)
 		ChatRouter.GET("unread", middleware.JWTAuth(), api.GetUnreadMsg)
 		ChatRouter.GET("unreadnum", middleware.JWTAuth(), api.GetUnreadMsgNum)
+		ChatRouter.POST("send", middleware.JWTAuth(), api.SnedMsg)
 	}
 }

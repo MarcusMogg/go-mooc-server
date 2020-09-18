@@ -28,10 +28,10 @@ func Login(u *entity.MUser) bool {
 }
 
 // GetUserInfoByID 获取用户信息
-func GetUserInfoByID(id uint) *entity.MUser {
+func GetUserInfoByID(id uint) (*entity.MUser, error) {
 	var u entity.MUser
-	global.GDB.First(&u, id)
-	return &u
+	err := global.GDB.First(&u, id).Error
+	return &u, err
 }
 
 // UpdateUser 修改用户信息

@@ -25,5 +25,7 @@ func InitUserRouter(Router *gin.RouterGroup) {
 		UserRouter.POST("watch", middleware.JWTAuth(), api.WatchUser)
 		UserRouter.GET("iwatchwho", middleware.JWTAuth(), api.IWatchWho)
 		UserRouter.GET("whowatchi", middleware.JWTAuth(), api.WhoWatchI)
+		UserRouter.POST("iswatch", middleware.JWTAuth(), api.IsWatchUser)
+		UserRouter.POST("unwatch", middleware.JWTAuth(), api.UnWatchUser)
 	}
 }

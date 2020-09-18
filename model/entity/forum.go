@@ -7,22 +7,24 @@ import (
 // Topic 帖子
 type Topic struct {
 	gorm.Model
-	UserID    uint
-	CID       uint `gorm:"not null"` //关联的课程ID
-	Num       uint // 主题的帖子数量
-	Title     string
-	Top       bool // 置顶
-	Important bool // 加精
+	CreatedAtStr string `gorm:"-" json:"time"`
+	UserID       uint
+	CID          uint `gorm:"not null"` //关联的课程ID
+	Num          uint // 主题的帖子数量
+	Title        string
+	Top          bool // 置顶
+	Important    bool // 加精
 }
 
 // Post 回复
 type Post struct {
 	gorm.Model
-	TopicID  uint `json:"-"`
-	UserID   uint
-	ReplyFor uint
-	Msg      string
-	Num      uint // 点赞数量
+	CreatedAtStr string `gorm:"-" json:"time"`
+	TopicID      uint   `json:"-"`
+	UserID       uint
+	ReplyFor     uint
+	Msg          string
+	Num          uint // 点赞数量
 }
 
 // TopicAuth 权限

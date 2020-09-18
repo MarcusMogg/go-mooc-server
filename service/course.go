@@ -37,11 +37,22 @@ func CheckCourseAuth(cid, uid uint, tx *gorm.DB) error {
 
 // CheckCourseStudentAuth 检查学生id是否属于课程
 func CheckCourseStudentAuth(cid, uid uint, tx *gorm.DB) error {
-	result := tx.Where("course_id = ? AND student_id = ?", cid, uid).First(&entity.CourseStudents{})
+	result := tx.Where("course_id = ? AND student_id = ? AND status = ?", cid, uid, 1).First(&entity.CourseStudents{})
 	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil
 	}
 	return errors.New("教师ID不对应")
+}
+
+// StudentInCourse 检查学生id是否属于课程
+func StudentInCourse(cid, uid uint, tx *gorm.DB) int {
+	var res int
+	result := tx.Where("course_id = ? AND student_id = ?", cid, uid, 1).First(&entity.CourseStudents{})
+	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return 3
+	}
+	tx.Model(&entity.CourseStudents{}).Select("status").Where("course_id = ? AND student_id = ?", cid, uid, 1).Scan(&res)
+	return res
 }
 
 // GetCourseByID 通过课程id获取课程信息
@@ -151,7 +162,7 @@ func InsertStudent(cid uint, name string, status uint) error {
 // GetStudents 获取学生列表
 func GetStudents(cid, status uint) []entity.MUser {
 	var users []entity.MUser
-	global.GDB.Table("m_users").Joins("JOIN course_students ON m_users.ID = course_students.StudentID").
+	global.GDB.Table("m_users").Joins("JOIN course_students ON m_users.id = course_students.student_id").
 		Where("course_students.course_id = ? AND course_students.status = ?", cid, status).Find(&users)
 	return users
 }
@@ -167,8 +178,8 @@ func DeleteStudent(uid, cid uint) {
 }
 
 // GetStudentAuth 获取学生权限
-func GetStudentAuth(uid, cid uint) entity.TopicAuth {
-	var res entity.TopicAuth
+func GetStudentAuth(uid, cid uint) uint {
+	var res uint
 	global.GDB.Model(&entity.CourseStudents{}).Select("auth").Where("student_id = ? AND course_id = ?", uid, cid).Scan(&res)
 	return res
 }

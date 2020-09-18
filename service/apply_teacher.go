@@ -30,7 +30,7 @@ func PaginateApply(pagenum, pagesize int) ([]response.ApplyTeacherResp, int64, e
 	result := global.GDB.Model(&entity.ApplyTeacher{}).Count(&total).Offset(offset).Limit(pagesize).Find(&applys)
 	if result.Error == nil {
 		for _, i := range applys {
-			user := GetUserInfoByID(i.UserID)
+			user, _ := GetUserInfoByID(i.UserID)
 			res = append(res, response.ApplyTeacherResp{
 				ID:       i.ID,
 				UserName: user.UserName,
@@ -45,25 +45,30 @@ func PaginateApply(pagenum, pagesize int) ([]response.ApplyTeacherResp, int64, e
 }
 
 // ChangeApplyState 修改审核状态
-func ChangeApplyState(a *request.ApplyAgreeReq) error {
+func ChangeApplyState(a *request.ApplyAgreeReq) (int, error) {
 	newState := 1
 	if !a.Agree {
 		newState = 2
 	}
-	return global.GDB.Transaction(func(tx *gorm.DB) error {
+	var id int
+	err := global.GDB.Transaction(func(tx *gorm.DB) error {
 		var app entity.ApplyTeacher
 		err := tx.Where("id = ?", a.ID).First(&app).Error
+		id = int(app.UserID)
 		if err == nil && app.State == 0 {
 			err = tx.Model(&entity.ApplyTeacher{}).Where("id = ?", a.ID).Update("state", newState).Error
 			if err != nil {
 				return err
 			}
-			err = tx.Model(&entity.MUser{}).Where("id = ?", app.UserID).Update("role", entity.Teacher).Error
-			if err != nil {
-				return err
+			if newState == 1 {
+				err = tx.Model(&entity.MUser{}).Where("id = ?", app.UserID).Update("role", entity.Teacher).Error
+				if err != nil {
+					return err
+				}
 			}
 			return nil
 		}
 		return errors.New("参数错误")
 	})
+	return id, err
 }

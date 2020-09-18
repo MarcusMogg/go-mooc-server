@@ -7,6 +7,7 @@ import (
 	"server/model/request"
 	"server/model/response"
 	"server/service"
+	"server/utils"
 	"strconv"
 	"time"
 
@@ -19,12 +20,15 @@ import (
 func Register(c *gin.Context) {
 	var r request.RegisterData
 	if err := c.BindJSON(&r); err == nil {
+		savePath := fmt.Sprintf("%d.png", time.Now().Unix())
+		utils.DrawText([]rune(r.UserName)[0], "source/avator/0/", savePath)
 		user := &entity.MUser{
 			UserName: r.UserName,
 			Email:    r.Email,
 			Password: r.Password,
 			Role:     entity.Student,
 			NickName: r.UserName,
+			Avatar:   "source/avator/0/" + savePath,
 		}
 
 		if err = service.Register(user); err == nil {
@@ -94,8 +98,12 @@ func GetUserInfoByID(c *gin.Context) {
 		response.FailWithMessage("参数错误", c)
 		return
 	}
-	u := service.GetUserInfoByID(uint(id))
-	response.OkWithData(u, c)
+	u, err := service.GetUserInfoByID(uint(id))
+	if err == nil {
+		response.OkWithData(u, c)
+	} else {
+		response.Fail(c)
+	}
 }
 
 // UpdateUserInfo 获取用户信息
@@ -152,8 +160,13 @@ func WatchUser(c *gin.Context) {
 	user := claim.(*entity.MUser)
 	var id request.GetByID
 	if err := c.BindJSON(&id); err == nil {
-		service.InsertWatchRecord(user.ID, id.ID)
-		response.Ok(c)
+		err = service.InsertWatchRecord(user.ID, id.ID)
+		if err == nil {
+			response.Ok(c)
+		} else {
+			response.FailWithMessage("已关注", c)
+		}
+
 	} else {
 		response.FailValidate(c)
 	}
@@ -181,4 +194,38 @@ func IWatchWho(c *gin.Context) {
 	user := claim.(*entity.MUser)
 	res := service.GetIWatchWho(user.ID)
 	response.OkWithData(res, c)
+}
+
+// IsWatchUser 是否已关注
+func IsWatchUser(c *gin.Context) {
+	claim, ok := c.Get("user")
+	if !ok {
+		response.FailWithMessage("未通过jwt认证", c)
+		return
+	}
+	user := claim.(*entity.MUser)
+	var id request.GetByID
+	if err := c.BindJSON(&id); err == nil {
+		res := service.IsWatchWho(user.ID, id.ID)
+		response.OkWithData(res, c)
+	} else {
+		response.FailValidate(c)
+	}
+}
+
+// UnWatchUser 关注一个用户
+func UnWatchUser(c *gin.Context) {
+	claim, ok := c.Get("user")
+	if !ok {
+		response.FailWithMessage("未通过jwt认证", c)
+		return
+	}
+	user := claim.(*entity.MUser)
+	var id request.GetByID
+	if err := c.BindJSON(&id); err == nil {
+		service.DropWatchWho(user.ID, id.ID)
+		response.Ok(c)
+	} else {
+		response.FailValidate(c)
+	}
 }

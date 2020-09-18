@@ -58,10 +58,15 @@ func GetApply(c *gin.Context) {
 func AgreeApply(c *gin.Context) {
 	var a request.ApplyAgreeReq
 	if err := c.BindJSON(&a); err == nil {
-		err = service.ChangeApplyState(&a)
+		id, err := service.ChangeApplyState(&a)
 		if err != nil {
 			response.FailWithMessage(err.Error(), c)
 		} else {
+			if a.Agree {
+				sendMessage(0, uint(id), "审核通过", entity.MBroadcast)
+			} else {
+				sendMessage(0, uint(id), "审核未通过", entity.MBroadcast)
+			}
 			response.Ok(c)
 		}
 	} else {

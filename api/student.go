@@ -1,6 +1,7 @@
 package api
 
 import (
+	"server/global"
 	"server/model/entity"
 	"server/model/request"
 	"server/model/response"
@@ -78,9 +79,12 @@ func ApproveCourseApply(c *gin.Context) {
 	if err := c.BindJSON(&a); err == nil {
 		if a.Status { // 同意更新学生状态
 			service.UpdateStudentStatus(a.GetByID.ID, a.CourseIDReq.ID, 1)
+			sendMessage(0, a.GetByID.ID, "已通过课程申请", entity.MBroadcast)
 		} else { // 失败删除
 			service.DeleteStudent(a.GetByID.ID, a.CourseIDReq.ID)
+			sendMessage(0, a.GetByID.ID, "未通过课程申请", entity.MBroadcast)
 		}
+		response.Ok(c)
 	} else {
 		response.FailValidate(c)
 	}
@@ -101,6 +105,7 @@ func UpdateStudentAuth(c *gin.Context) {
 	var id request.StudentAuthReq
 	if err := c.BindJSON(&id); err == nil {
 		service.SetStudentAuth(id.GetByID.ID, id.CourseIDReq.ID, id.Auth)
+		sendMessage(0, id.GetByID.ID, "您的权限已被修改，请重新登录", entity.MBroadcast)
 		response.Ok(c)
 	} else {
 		response.FailValidate(c)
@@ -116,4 +121,24 @@ func GetStudentsAuth(c *gin.Context) {
 	} else {
 		response.FailValidate(c)
 	}
+}
+
+// InCourse 判断学生是否在课程里
+func InCourse(c *gin.Context) {
+	claim, ok := c.Get("user")
+	if !ok {
+		response.FailWithMessage("未通过jwt认证", c)
+		return
+	}
+	user := claim.(*entity.MUser)
+	var id request.CourseIDReq
+	if err := c.BindJSON(&id); err == nil {
+		if err := service.CourseExist(id.ID); err == nil {
+			response.OkWithData(service.StudentInCourse(id.ID, user.ID, global.GDB), c)
+			return
+		}
+	} else {
+		response.FailValidate(c)
+	}
+	response.Fail(c)
 }

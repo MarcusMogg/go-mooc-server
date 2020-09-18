@@ -32,8 +32,11 @@ func GetTopicsByCourseID(pagenum, pagesize int, cid uint) *response.TopicList {
 	res := &response.TopicList{}
 	offset := (pagenum - 1) * pagesize
 	var tot int64
-	global.GDB.Model(&entity.Topic{}).Where("c_id = ?", cid).Count(&tot).Offset(offset).Limit(pagesize).Find(&res.Topics)
+	global.GDB.Model(&entity.Topic{}).Where("c_id = ?", cid).Order("top desc").Count(&tot).Offset(offset).Limit(pagesize).Find(&res.Topics)
 	res.Num = uint(tot)
+	for i := range res.Topics {
+		res.Topics[i].CreatedAtStr = res.Topics[i].CreatedAt.Format(global.TimeTemplateSec)
+	}
 	return res
 }
 
@@ -48,6 +51,9 @@ func GetTopicDetail(pagenum, pagesize int, id uint) *response.TopicDetailResp {
 	global.GDB.Where("id = ?", id).First(&t)
 	res.Title = t.Title
 	res.CourseIDReq.ID = t.CID
+	for i := range res.Posts {
+		res.Posts[i].CreatedAtStr = res.Posts[i].CreatedAt.Format(global.TimeTemplateSec)
+	}
 	return res
 }
 

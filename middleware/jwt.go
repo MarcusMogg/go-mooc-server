@@ -76,7 +76,12 @@ func JWTAuth() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		u := service.GetUserInfoByID(claim.UserID)
+		u, err := service.GetUserInfoByID(claim.UserID)
+		if err != nil {
+			response.FailToken(c)
+			c.Abort()
+			return
+		}
 		c.Set("user", u)
 		c.Next()
 	}

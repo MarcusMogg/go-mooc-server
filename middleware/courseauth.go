@@ -3,6 +3,7 @@ package middleware
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"server/global"
 	"server/model/entity"
@@ -93,9 +94,10 @@ func TopicAuth(auth entity.TopicAuth) gin.HandlerFunc {
 		user := claim.(*entity.MUser)
 		if data, err := c.GetRawData(); err == nil {
 			var cid request.CourseIDReq
+			fmt.Println(string(data))
 			if err := json.Unmarshal(data, &cid); err == nil {
 				if err := service.CourseExist(cid.ID); err == nil {
-					res := service.GetStudentAuth(user.ID, cid.ID)
+					res := entity.TopicAuth(service.GetStudentAuth(user.ID, cid.ID))
 					if entity.CheckTopicAuth(res, auth) {
 						c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(data))
 						c.Next()

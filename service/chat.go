@@ -14,10 +14,9 @@ func InsertMessage(msg *entity.ChatMessage) error {
 }
 
 // GetUnreadMsgNum 查询所有未读消息,并按照fromID分组
-func GetUnreadMsgNum(id uint) []response.UnreadMsgNumResp {
-	var res []response.UnreadMsgNumResp
-	global.GDB.Model(&entity.ChatMessage{}).Select("from_id, count(*)").
-		Group("from_id").Having("status = ? AND to_id = ?", false, id).Scan(&res)
+func GetUnreadMsgNum(id uint) int64 {
+	var res int64
+	global.GDB.Model(&entity.ChatMessage{}).Where("status = ? AND to_id = ?", false, id).Count(&res)
 	return res
 }
 

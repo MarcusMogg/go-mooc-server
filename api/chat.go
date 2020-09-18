@@ -37,7 +37,12 @@ func AloneWS(c *gin.Context) {
 	}
 	var user *entity.MUser
 	if msg.CMRType == request.USERID {
-		user = service.GetUserInfoByID(msg.ToID)
+		user, err = service.GetUserInfoByID(msg.ToID)
+		if err != nil {
+			fmt.Println("chat/alonews:没有连接")
+			ws.Close()
+			return
+		}
 	} else {
 		fmt.Println("chat/alonews:没有连接")
 		ws.Close()
@@ -111,3 +116,19 @@ func sendMessage(from, to uint, msg string, tp entity.MsgType) {
 	}
 }
 
+// SnedMsg 发消息
+func SnedMsg(c *gin.Context) {
+	claim, ok := c.Get("user")
+	if !ok {
+		response.FailWithMessage("未通过jwt认证", c)
+		return
+	}
+	user := claim.(*entity.MUser)
+	var msg request.ChatMsgReq
+	if err := c.BindJSON(&msg); err == nil {
+		sendMessage(user.ID, msg.ToID, msg.Msg, entity.MAlone)
+		response.Ok(c)
+	} else {
+		response.FailValidate(c)
+	}
+}

@@ -38,5 +38,6 @@ func InitCourseRouter(Router *gin.RouterGroup) {
 		UserRouter.POST("deletestudent", middleware.JWTAuth(), middleware.TopicAuth(entity.APPROVE), api.DeleteStudent)
 		UserRouter.POST("updatestudentauth", middleware.JWTAuth(), middleware.CourseTeacherAuth(), api.UpdateStudentAuth)
 		UserRouter.POST("getstudentauth", middleware.JWTAuth(), api.GetStudentsAuth)
+		UserRouter.POST("in", middleware.JWTAuth(), api.InCourse)
 	}
 }
