@@ -24,6 +24,7 @@ func CreateLive(c *gin.Context) {
 	if err := c.BindJSON(&live); err == nil {
 		liveData := entity.Live{
 			Name:         live.Name,
+			TeacherID:    live.TeacherID,
 			CourseID:     live.CourseID,
 			CourseName:   live.CourseName,
 			StartTime:    live.StartTime,
@@ -118,6 +119,13 @@ func LiveWS(c *gin.Context) {
 	fmt.Println(global.LIVECLIENTS.Rooms[er.LiveID])
 	if er.IsTeacher {
 		global.TEACHERS.Store(er.LiveID, er.UID)
+	} else {
+		fmt.Println("转发推流消息")
+		teacherID, ok := global.TEACHERS.Load(er.LiveID)
+		res := response.PushStream{Type: response.PTS, Permit: true, UID: teacherID.(uint), UName: ""}
+		if ok {
+			global.LIVECLIENTS.Rooms[er.LiveID][er.UID].WriteJSON(res)
+		}
 	}
 	rer := response.EnterRoom{Type: response.ETR, UID: er.UID, UName: er.UName, IsTeacher: er.IsTeacher, Icon: er.Icon, IsStudent: er.IsStudent}
 	global.LIVEROOMS.AddER(er.LiveID, er.UID, rer)

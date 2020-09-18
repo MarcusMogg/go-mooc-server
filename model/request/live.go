@@ -19,6 +19,7 @@ const (
 // LiveReq 直播信息
 type LiveReq struct {
 	Name         string `form:"name" json:"name" binding:"required"`
+	TeacherID    uint   `form:"teacherid" json:"teacherid" binding:"required"`
 	Introduction string `form:"introduction" json:"introduction" binding:"required"`
 	CourseID     uint   `form:"courseId" json:"courseId" binding:"required"`
 	CourseName   string `form:"courseName" json:"courseName" binding:"required"`

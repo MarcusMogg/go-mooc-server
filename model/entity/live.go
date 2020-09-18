@@ -11,6 +11,7 @@ import (
 type Live struct {
 	gorm.Model
 	Name         string `json:"name"`
+	TeacherID    uint   `json:"teacherid"`
 	Introduction string `json:"introduction"`
 	CourseID     uint   `json:"courseid"`
 	CourseName   string `json:"coursename"`
