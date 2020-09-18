@@ -8,6 +8,7 @@ import (
 	"server/model/response"
 	"server/service"
 	"server/utils"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -100,9 +101,9 @@ func LiveWS(c *gin.Context) {
 		global.LIVEROOMS.DropER(er.LiveID, er.UID)
 		if er.IsTeacher {
 			global.TEACHERS.Delete(er.LiveID)
+			global.LIVER.Delete(er.LiveID)
 		}
-		for id, tows := range global.LIVECLIENTS.Rooms[er.LiveID] {
-			fmt.Println("转发进入房间的消息", id)
+		for _, tows := range global.LIVECLIENTS.Rooms[er.LiveID] {
 			var ERL response.EnterRoomList
 			ERL.Type = response.ETR
 			for _, e := range global.LIVEROOMS.Rooms[er.LiveID] {
@@ -111,26 +112,20 @@ func LiveWS(c *gin.Context) {
 			err := tows.WriteJSON(ERL)
 			fmt.Println("live/sendmessage:", err)
 		}
-		fmt.Println("断开连接")
 		ws.Close()
 	}()
 	global.LIVECLIENTS.AddSocket(er.LiveID, er.UID, ws)
-	fmt.Println("建立连接")
 	fmt.Println(global.LIVECLIENTS.Rooms[er.LiveID])
 	if er.IsTeacher {
 		global.TEACHERS.Store(er.LiveID, er.UID)
+		global.LIVER.Store(er.LiveID, er.UID)
 	} else {
-		fmt.Println("转发推流消息")
-		teacherID, ok := global.TEACHERS.Load(er.LiveID)
-		res := response.PushStream{Type: response.PTS, Permit: true, UID: teacherID.(uint), UName: ""}
-		if ok {
-			global.LIVECLIENTS.Rooms[er.LiveID][er.UID].WriteJSON(res)
-		}
+		liveSign := entity.LiveSign{LiveID: er.LiveID, UserID: er.UID, UserName: er.UName, SignTime: time.Now().Format("2006-01-02 15:04:05")}
+		service.InsertLiveSign(&liveSign)
 	}
 	rer := response.EnterRoom{Type: response.ETR, UID: er.UID, UName: er.UName, IsTeacher: er.IsTeacher, Icon: er.Icon, IsStudent: er.IsStudent}
 	global.LIVEROOMS.AddER(er.LiveID, er.UID, rer)
-	for id, tows := range global.LIVECLIENTS.Rooms[er.LiveID] {
-		fmt.Println("转发进入房间的消息", id)
+	for _, tows := range global.LIVECLIENTS.Rooms[er.LiveID] {
 		var ERL response.EnterRoomList
 		ERL.Type = response.ETR
 		for _, e := range global.LIVEROOMS.Rooms[er.LiveID] {
@@ -151,25 +146,46 @@ func LiveWS(c *gin.Context) {
 			broadCastChatMsg(er.UID, er.LiveID, msg.ChatData)
 		} else if msg.LiveReqType == request.PST {
 			if er.IsTeacher {
-				res := response.PushStream{Type: response.PTS, Permit: true, UID: er.UID, UName: er.UName}
-				for id, tows := range global.LIVECLIENTS.Rooms[er.LiveID] {
-					fmt.Println("转发切换推流的消息到", id)
-					err := tows.WriteJSON(res)
-					fmt.Println("live/sendmessage:", err)
+				res := response.PushStream{Type: response.PTS, Permit: true, UID: msg.ControlData.Push.UID, UName: ""}
+				tows := global.LIVECLIENTS.Rooms[er.LiveID][msg.ControlData.Push.UID]
+				if tows != nil {
+					tows.WriteJSON(res)
+					global.LIVER.Store(er.LiveID, msg.ControlData.Push.UID)
 				}
 			} else if er.IsStudent {
-				res := response.StudentPushStream{Type: response.SPTS, UID: er.UID, UName: er.UName}
-				teacherID, ok := global.TEACHERS.Load(er.LiveID)
-				if ok {
-					global.LIVECLIENTS.Rooms[er.LiveID][teacherID.(uint)].WriteJSON(res)
+				liver, liverOk := global.LIVER.Load(er.LiveID)
+				fmt.Println(liver)
+				teacherID, teacherOk := global.TEACHERS.Load(er.LiveID)
+				if liverOk && teacherOk && liver == teacherID {
+					res := response.StudentPushStream{Type: response.SPTS, UID: er.UID, UName: er.UName}
+					teacherID, ok := global.TEACHERS.Load(er.LiveID)
+					if ok {
+						global.LIVECLIENTS.Rooms[er.LiveID][teacherID.(uint)].WriteJSON(res)
+					}
 				}
+			}
+		} else if msg.LiveReqType == request.SPST {
+			res := response.PushStream{Type: response.PTS, Permit: true, UID: msg.ControlData.Push.UID, UName: ""}
+			tows := global.LIVECLIENTS.Rooms[er.LiveID][res.UID]
+			if tows != nil {
+				err := tows.WriteJSON(res)
+				global.LIVER.Store(er.LiveID, msg.ControlData.Push.UID)
+				fmt.Println("live/sendmessage:", err)
 			}
 		} else if msg.LiveReqType == request.TPST {
 			if er.IsTeacher {
 				if msg.ControlData.TPermit.Permit {
 					res := response.PushStream{Type: response.PTS, Permit: true, UID: msg.ControlData.TPermit.UID, UName: msg.ControlData.TPermit.UName}
-					for id, tows := range global.LIVECLIENTS.Rooms[er.LiveID] {
-						fmt.Println("转发切换推流的消息到", id)
+					tows := global.LIVECLIENTS.Rooms[er.LiveID][res.UID]
+					if tows != nil {
+						err := tows.WriteJSON(res)
+						global.LIVER.Store(er.LiveID, msg.ControlData.TPermit.UID)
+						fmt.Println("live/sendmessage:", err)
+					}
+				} else {
+					res := response.PushStream{Type: response.PTS, Permit: false, UID: msg.ControlData.TPermit.UID, UName: msg.ControlData.TPermit.UName}
+					tows := global.LIVECLIENTS.Rooms[er.LiveID][res.UID]
+					if tows != nil {
 						err := tows.WriteJSON(res)
 						fmt.Println("live/sendmessage:", err)
 					}
@@ -179,20 +195,31 @@ func LiveWS(c *gin.Context) {
 			if er.IsTeacher {
 				res := response.Stop{Type: response.STOP}
 				for id, tows := range global.LIVECLIENTS.Rooms[er.LiveID] {
-					fmt.Println("转发停止推流的消息到", id)
-					err := tows.WriteJSON(res)
-					fmt.Println("live/sendmessage:", err)
-				}
-			} else if er.IsStudent {
-				teacherID, ok := global.TEACHERS.Load(er.LiveID)
-				if ok {
-					res := response.PushStream{Type: response.PTS, Permit: true, UID: teacherID.(uint), UName: ""}
-					for id, tows := range global.LIVECLIENTS.Rooms[er.LiveID] {
-						fmt.Println("转发切换推流的消息到", id)
+					if id != er.UID {
 						err := tows.WriteJSON(res)
+						global.LIVER.Delete(er.LiveID)
 						fmt.Println("live/sendmessage:", err)
 					}
 				}
+			}
+		} else if msg.LiveReqType == request.SSP {
+			if er.IsTeacher {
+				res := response.StopStudent{Type: response.SSP}
+				liver, ok := global.LIVER.Load(er.LiveID)
+				if ok {
+					tows := global.LIVECLIENTS.Rooms[er.LiveID][liver.(uint)]
+					err := tows.WriteJSON(res)
+					fmt.Println("live/sendmessage:", err)
+				}
+			}
+		} else if msg.LiveReqType == request.SSPED {
+			teacherID, ok := global.TEACHERS.Load(er.LiveID)
+			res := response.PushStream{Type: response.PTS, Permit: true}
+			if ok {
+				global.LIVER.Store(er.LiveID, teacherID)
+				tows := global.LIVECLIENTS.Rooms[er.LiveID][teacherID.(uint)]
+				err := tows.WriteJSON(res)
+				fmt.Println("live/sendmessage:", err)
 			}
 		}
 	}
@@ -201,7 +228,6 @@ func LiveWS(c *gin.Context) {
 func broadCastChatMsg(uid, lid uint, msg request.ChatData) {
 	for id, tows := range global.LIVECLIENTS.Rooms[lid] {
 		if id != uid {
-			fmt.Println("转发消息")
 			sendChatMsg(tows, msg)
 		}
 	}

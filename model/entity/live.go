@@ -19,6 +19,15 @@ type Live struct {
 	EndTime      string `json:"endtime"`
 }
 
+// LiveSign 直播课程签到
+type LiveSign struct {
+	gorm.Model
+	LiveID   uint   `json:"liveid"`
+	UserName string `json:"username"`
+	UserID   uint   `json:"userid"`
+	SignTime string `json:"signtime"`
+}
+
 // SafeMap 线程安全的map
 type SafeMap struct {
 	Rooms map[uint]map[uint]*websocket.Conn

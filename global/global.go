@@ -30,6 +30,8 @@ var (
 	TEACHERS sync.Map
 	// LIVEROOMS 每个直播间的人员
 	LIVEROOMS response.SafeERMap
+	// LIVER 直播间直播id
+	LIVER sync.Map
 )
 
 // TimeTemplateDay 时间转换模板，到天
