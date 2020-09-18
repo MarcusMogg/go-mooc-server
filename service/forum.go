@@ -32,7 +32,7 @@ func GetTopicsByCourseID(pagenum, pagesize int, cid uint) *response.TopicList {
 	res := &response.TopicList{}
 	offset := (pagenum - 1) * pagesize
 	var tot int64
-	global.GDB.Model(&entity.Topic{}).Where("cid = ?", cid).Count(&tot).Offset(offset).Limit(pagesize).Find(&res.Topics)
+	global.GDB.Model(&entity.Topic{}).Where("c_id = ?", cid).Count(&tot).Offset(offset).Limit(pagesize).Find(&res.Topics)
 	res.Num = uint(tot)
 	return res
 }
