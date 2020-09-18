@@ -45,7 +45,7 @@ const (
 
 // CheckTopicAuth 检查是否拥有相应权限
 func CheckTopicAuth(auth, target TopicAuth) bool {
-	return (auth | target) > 0
+	return (auth & target) > 0
 }
 
 // SetTopicAuth 设置相应权限

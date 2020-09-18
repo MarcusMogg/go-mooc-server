@@ -62,6 +62,7 @@ func AloneWS(c *gin.Context) {
 			fmt.Println("chat/alonews:", err)
 			break
 		}
+		fmt.Println(msg)
 		if msg.CMRType == request.SENDMSG {
 			sendMessage(user.ID, msg.ToID, msg.Msg, entity.MAlone)
 		} else {

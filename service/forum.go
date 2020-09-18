@@ -22,7 +22,7 @@ func InsertTopic(t *entity.Topic, p *entity.Post) {
 // InsertPost 创建帖子
 func InsertPost(p *entity.Post) {
 	global.GDB.Transaction(func(tx *gorm.DB) error {
-		tx.Model(&entity.Post{}).Where("id = ?", p.TopicID).Update("num", gorm.Expr("num + ?", 1))
+		tx.Model(&entity.Topic{}).Where("id = ?", p.TopicID).Update("num", gorm.Expr("num + ?", 1))
 		return tx.Create(p).Error
 	})
 }
@@ -73,7 +73,7 @@ func DropPost(id uint) {
 	global.GDB.Transaction(func(tx *gorm.DB) error {
 		var topicid uint
 		tx.Model(&entity.Post{}).Select("topic_id").Where("id = ?", id).Scan(&topicid)
-		tx.Model(&entity.Post{}).Where("id = ?", topicid).Update("num", gorm.Expr("num - ?", 1))
+		tx.Model(&entity.Topic{}).Where("id = ?", topicid).Update("num", gorm.Expr("num - ?", 1))
 		return tx.Where("id = ?", id).Delete(&entity.Post{}).Error
 	})
 }

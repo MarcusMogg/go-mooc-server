@@ -47,8 +47,8 @@ func CheckCourseStudentAuth(cid, uid uint, tx *gorm.DB) error {
 // StudentInCourse 检查学生id是否属于课程
 func StudentInCourse(cid, uid uint, tx *gorm.DB) int {
 	var res int
-	result := tx.Where("course_id = ? AND student_id = ?", cid, uid, 1).First(&entity.CourseStudents{})
-	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+	result := tx.Where("course_id = ? AND student_id = ?", cid, uid).First(&entity.CourseStudents{})
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return 3
 	}
 	tx.Model(&entity.CourseStudents{}).Select("status").Where("course_id = ? AND student_id = ?", cid, uid, 1).Scan(&res)
