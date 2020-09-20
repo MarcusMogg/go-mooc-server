@@ -1,6 +1,6 @@
-asekey : "sadasdasdsxcsa42"
-jwtkey : "sfsrwewcweafa,sf"
-apikey : "78fcaed7471cd30cd8976fa681a06a247444b1dad860500f996e38d79de7325c"
+asekey : "sadasdasdsxcsa42" # 长度有要求
+jwtkey : "sfsrwewcweafa,sf" # 长度有要求
+apikey : "腾讯云key"
 addr : 1234
 
 mysql:
