@@ -1,0 +1,12 @@
+asekey : "sadasdasdsxcsa42"
+jwtkey : "sfsrwewcweafa,sf"
+apikey : "78fcaed7471cd30cd8976fa681a06a247444b1dad860500f996e38d79de7325c"
+addr : 1234
+
+mysql:
+    username: root
+    password: 'rott@123'
+    path: '127.0.0.1:3306'
+    db-name: 'mooc'
+    parm: 'charset=utf8&parseTime=True&loc=Local'
+             

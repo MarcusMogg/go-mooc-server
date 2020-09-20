@@ -80,15 +80,9 @@ func transcoding(vid uint) {
 	}
 	global.GDB.Model(&video).Update("format", ".mp4")
 
-	param := []string{"-i", video.Path + video.VideoName + ".mp4", "-b:v", "10000k", "-s", "640*480", video.Path + video.VideoName + ".ts"}
-	cmd := exec.Command("ffmpeg", param...)
-	if err := cmd.Run(); err != nil {
-		return
-	}
-
-	param = []string{"-y", "-i", video.Path + video.VideoName + ".mp4", "-vcodec", "copy", "-acodec", "copy", "-vbsf",
+	param := []string{"-y", "-i", video.Path + video.VideoName + ".mp4", "-vcodec", "copy", "-acodec", "copy", "-vbsf",
 		"h264_mp4toannexb", video.Path + video.VideoName + ".ts"}
-	cmd = exec.Command("ffmpeg", param...)
+	cmd := exec.Command("ffmpeg", param...)
 	if err := cmd.Run(); err != nil {
 		return
 	}

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"server/global"
 	"server/model/entity"
 	"server/model/request"
@@ -16,8 +17,10 @@ func AddStudents(c *gin.Context) {
 	if err := c.BindJSON(&as); err == nil {
 		var errs []string
 		for _, i := range as.UserNames {
-			if err = service.InsertStudent(as.ID, i, 1); err != nil {
+			if id, err := service.InsertStudent(as.ID, i, 1); err != nil {
 				errs = append(errs, i)
+			} else {
+				sendMessage(0, id, fmt.Sprintf("您已加入课程%d", as.ID), entity.MBroadcast)
 			}
 		}
 		if len(errs) != 0 {
@@ -62,10 +65,10 @@ func ApplyCourse(c *gin.Context) {
 	user := claim.(*entity.MUser)
 	var id request.CourseIDReq
 	if err := c.BindJSON(&id); err == nil {
-
-		if err := service.InsertStudent(id.ID, user.UserName, 0); err != nil {
+		if uid, err := service.InsertStudent(id.ID, user.UserName, 0); err != nil {
 			response.FailWithMessage(err.Error(), c)
 		} else {
+			sendMessage(0, uid, fmt.Sprintf("您已申请加入课程%d", id.ID), entity.MBroadcast)
 			response.Ok(c)
 		}
 	} else {
@@ -94,7 +97,13 @@ func ApproveCourseApply(c *gin.Context) {
 func DeleteStudent(c *gin.Context) {
 	var a request.ApproveStudentApplyReq
 	if err := c.BindJSON(&a); err == nil {
-		service.DeleteStudent(a.GetByID.ID, a.CourseIDReq.ID)
+		err := service.DeleteStudent(a.GetByID.ID, a.CourseIDReq.ID)
+		if err != nil {
+			response.FailWithMessage(err.Error(), c)
+		} else {
+			sendMessage(0, a.GetByID.ID, fmt.Sprintf("您已被移出课程%d", a.CourseIDReq.ID), entity.MBroadcast)
+			response.Ok(c)
+		}
 	} else {
 		response.FailValidate(c)
 	}
